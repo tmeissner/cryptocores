@@ -97,7 +97,7 @@ begin
   begin
     s_mode    <= '0';
     s_validin <= '0';
-    s_key     <= x"5555555555555555";
+    s_key     <= x"0101010101010101";
     s_datain  <= x"8000000000000000";
     report "# encryption test";
     for index in s_variable_plaintext_known_answers'range loop
