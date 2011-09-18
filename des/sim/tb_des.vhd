@@ -23,6 +23,8 @@
 -- Initial release
 -- Revision 1.0.1 2011/09/18
 -- tests partial adopted to NIST 800-16 publication
+-- Revision 1.0.2 2011/09/18
+-- includes more tests of NIST 800-16 publication
 
 
 library ieee;
@@ -63,6 +65,26 @@ architecture rtl of tb_des is
      x"CC083F1E6D9E85F6", x"D2FD8867D50D2DFE", x"06E7EA22CE92708F",
      x"166B40B44ABA4BD6");
 
+  signal s_variable_key_known_answers : t_array(0 to 55) :=
+    (x"95A8D72813DAA94D", x"0EEC1487DD8C26D5", x"7AD16FFB79C45926",
+     x"D3746294CA6A6CF3", x"809F5F873C1FD761", x"C02FAFFEC989D1FC",
+     x"4615AA1D33E72F10", x"2055123350C00858", x"DF3B99D6577397C8",
+     x"31FE17369B5288C9", x"DFDD3CC64DAE1642", x"178C83CE2B399D94",
+     x"50F636324A9B7F80", x"A8468EE3BC18F06D", x"A2DC9E92FD3CDE92",
+     x"CAC09F797D031287", x"90BA680B22AEB525", x"CE7A24F350E280B6",
+     x"882BFF0AA01A0B87", x"25610288924511C2", x"C71516C29C75D170",
+     x"5199C29A52C9F059", x"C22F0A294A71F29F", x"EE371483714C02EA",
+     x"A81FBD448F9E522F", x"4F644C92E192DFED", x"1AFA9A66A6DF92AE",
+     x"B3C1CC715CB879D8", x"19D032E64AB0BD8B", x"3CFAA7A7DC8720DC",
+     x"B7265F7F447AC6F3", x"9DB73B3C0D163F54", x"8181B65BABF4A975",
+     x"93C9B64042EAA240", x"5570530829705592", x"8638809E878787A0",
+     x"41B9A79AF79AC208", x"7A9BE42F2009A892", x"29038D56BA6D2745",
+     x"5495C6ABF1E5DF51", x"AE13DBD561488933", x"024D1FFA8904E389",
+     x"D1399712F99BF02E", x"14C1D7C1CFFEC79E", x"1DE5279DAE3BED6F",
+     x"E941A33F85501303", x"DA99DBBC9A03F379", x"B7FC92F91D8E92E9",
+     x"AE8E5CAA3CA04E85", x"9CC62DF43B6EED74", x"D863DBB5C59A91A0",
+     x"A1AB2190545B91D7", x"0875041E64C570F7", x"5A594528BEBEF1CC",
+     x"FCDB3291DE21F0C0", x"869EFD7F9F265A09");
 
 
   signal s_clk      : std_logic := '0';
@@ -99,7 +121,8 @@ begin
     s_validin <= '0';
     s_key     <= x"0101010101010101";
     s_datain  <= x"8000000000000000";
-    report "# encryption test";
+    -- Variable plaintext known answer test
+    -- Encryption
     for index in s_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk);
         s_validin <= '1';
@@ -108,9 +131,50 @@ begin
         end if;
     end loop;
     wait until rising_edge(s_clk);
+    s_mode    <= '0';
     s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
     wait for 100 ns;
-    report "# decryption test";
+    -- Inverse permutation known answer test
+    -- Encryption
+    s_key     <= x"0101010101010101";
+    for index in s_variable_plaintext_known_answers'range loop
+      wait until rising_edge(s_clk);
+        s_validin <= '1';
+        s_datain  <= s_variable_plaintext_known_answers(index);
+    end loop;
+    wait until rising_edge(s_clk);
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
+    wait for 100 ns;
+    -- Variable key known answer test
+    -- Encryption
+    s_key     <= x"8000000000000000";
+    for index in s_variable_key_known_answers'range loop
+      wait until rising_edge(s_clk);
+        s_validin <= '1';
+        if(index /= 0) then
+          if(index = 7 or index = 14 or index = 21 or index = 28 or index = 35 or
+             index = 42 or index = 49) then
+            s_key <= "00" & s_key(0 to 61);
+          else
+            s_key <= '0' & s_key(0 to 62);
+          end if;
+        end if;
+    end loop;
+    wait until rising_edge(s_clk);
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
+    wait for 100 ns;
+
+    -- Variable plaintext known answer test
+    -- Decryption
+    s_key     <= x"0101010101010101";
     for index in s_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk);
         s_mode    <= '1';
@@ -127,21 +191,45 @@ begin
   
   
   testcheckerP : process is
-    variable v_variable_ciphertext_known_answers : std_logic_vector(0 to 63) := x"8000000000000000";
+    variable v_plaintext : std_logic_vector(0 to 63) := x"8000000000000000";
   begin
+    report "# Variable plaintext known answer test";
+    report "# Encryption";
     for index in s_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
-        if(s_dataout /= s_variable_plaintext_known_answers(index)) then
-          report "encryption error";
-        end if;
+        assert (s_dataout = s_variable_plaintext_known_answers(index))
+          report "encryption error"
+          severity error;
     end loop;
+    report "# Inverse permutation known answer test";
+    report "# Encryption";
     for index in s_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
-        if(s_dataout /= v_variable_ciphertext_known_answers) then
-          report "decryption error";
-        end if;
-        v_variable_ciphertext_known_answers := '0' & v_variable_ciphertext_known_answers(0 to 62);
+        assert (s_dataout = v_plaintext)
+          report "encryption error"
+          severity error;
+        v_plaintext := '0' & v_plaintext(0 to 62);
     end loop;
+    report "# Variable key known answer test";
+    report "# Encryption";
+    for index in s_variable_key_known_answers'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        assert (s_dataout = s_variable_key_known_answers(index))
+          report "encryption error"
+          severity error;
+    end loop;
+
+    report "# Variable plaintext known answer test";
+    report "# Decryption";
+    v_plaintext := x"8000000000000000";
+    for index in s_variable_plaintext_known_answers'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        assert (s_dataout = v_plaintext) 
+          report "decryption error"
+          severity error;
+        v_plaintext := '0' & v_plaintext(0 to 62);
+    end loop;
+    report "# Successfully passed all tests";
     wait;
   end process testcheckerP;
 
