@@ -1,6 +1,6 @@
 -- ======================================================================
--- DES encryption/decryption
--- algorithm according to FIPS 46-3 specification
+-- DES encryption/decryption testbench
+-- tests according to NIST 800-16 special publication
 -- Copyright (C) 2011 Torsten Meissner
 -------------------------------------------------------------------------
 -- This program is free software; you can redistribute it and/or modify
@@ -16,21 +16,18 @@
 -- You should have received a copy of the GNU General Public License
 -- along with this program; if not, write to the Free Software
 -- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
--- the testvectors in this file are taken from the project
--- "DES/Triple DES IP Cores" from Rudolf Usselmann, to find under
--- http://opencores.org/project,des
--- Copyright (C) 2001 Rudolf Usselmann (rudi@asics.ws) 
 -- ======================================================================
 
 
--- Revision 1.0  2011/09/17
+-- Revision 1.0   2011/09/17
 -- Initial release
+-- Revision 1.0.1 2011/09/18
+-- tests partial adopted to NIST 800-16 publication
 
 
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.ALL;
+use ieee.numeric_std.all;
 
 
 entity tb_des is
@@ -40,34 +37,32 @@ end entity tb_des;
 architecture rtl of tb_des is
 
 
-  type t_array is array (0 to 18) of std_logic_vector(0 to 63);
+  type t_array is array (natural range <>) of std_logic_vector(0 to 63);
   
-  signal s_key_values : t_array :=
-	(x"7CA110454A1A6E57", x"0131D9619DC1376E", x"07A1133E4A0B2686",
-     x"3849674C2602319E", x"04B915BA43FEB5B6", x"0113B970FD34F2CE",
- 	 x"0170F175468FB5E6", x"43297FAD38E373FE", x"07A7137045DA2A16",
- 	 x"04689104C2FD3B2F", x"37D06BB516CB7546", x"1F08260D1AC2465E",
-	 x"584023641ABA6176", x"025816164629B007", x"49793EBC79B3258F",
-	 x"4FB05E1515AB73A7", x"49E95D6D4CA229BF", x"018310DC409B26D6",
-	 x"1C587F1C13924FEF");
-	
-  signal s_plain_values : t_array :=
-    (x"01A1D6D039776742", x"5CD54CA83DEF57DA", x"0248D43806F67172",
-	 x"51454B582DDF440A", x"42FD443059577FA2", x"059B5E0851CF143A",
-	 x"0756D8E0774761D2", x"762514B829BF486A", x"3BDD119049372802",
-	 x"26955F6835AF609A", x"164D5E404F275232", x"6B056E18759F5CCA",
-	 x"004BD6EF09176062", x"480D39006EE762F2", x"437540C8698F3CFA",
-	 x"072D43A077075292", x"02FE55778117F12A", x"1D9D5C5018F728C2",
-	 x"305532286D6F295A");
-	 
-  signal s_crypt_values : t_array :=
-  	(x"690F5B0D9A26939B", x"7A389D10354BD271", x"868EBB51CAB4599A",
- 	 x"7178876E01F19B2A", x"AF37FB421F8C4095", x"86A560F10EC6D85B",
-	 x"0CD3DA020021DC09", x"EA676B2CB7DB2B7A", x"DFD64A815CAF1A0F",
-	 x"5C513C9C4886C088", x"0A2AEEAE3FF4AB77", x"EF1BF03E5DFA575A",
-	 x"88BF0DB6D70DEE56", x"A1F9915541020B56", x"6FBF1CAFCFFD0556",
-	 x"2F22E49BAB7CA1AC", x"5A6B612CC26CCE4A", x"5F4C038ED12B2E41",
-	 x"63FAC0D034D9F793");
+  signal s_variable_plaintext_known_answers : t_array(0 to 63) :=
+    (x"95F8A5E5DD31D900", x"DD7F121CA5015619", x"2E8653104F3834EA",
+     x"4BD388FF6CD81D4F", x"20B9E767B2FB1456", x"55579380D77138EF",
+     x"6CC5DEFAAF04512F", x"0D9F279BA5D87260", x"D9031B0271BD5A0A",
+     x"424250B37C3DD951", x"B8061B7ECD9A21E5", x"F15D0F286B65BD28",
+     x"ADD0CC8D6E5DEBA1", x"E6D5F82752AD63D1", x"ECBFE3BD3F591A5E",
+     x"F356834379D165CD", x"2B9F982F20037FA9", x"889DE068A16F0BE6",
+     x"E19E275D846A1298", x"329A8ED523D71AEC", x"E7FCE22557D23C97",
+     x"12A9F5817FF2D65D", x"A484C3AD38DC9C19", x"FBE00A8A1EF8AD72",
+     x"750D079407521363", x"64FEED9C724C2FAF", x"F02B263B328E2B60",
+     x"9D64555A9A10B852", x"D106FF0BED5255D7", x"E1652C6B138C64A5",
+     x"E428581186EC8F46", x"AEB5F5EDE22D1A36", x"E943D7568AEC0C5C",
+     x"DF98C8276F54B04B", x"B160E4680F6C696F", x"FA0752B07D9C4AB8",
+     x"CA3A2B036DBC8502", x"5E0905517BB59BCF", x"814EEB3B91D90726",
+     x"4D49DB1532919C9F", x"25EB5FC3F8CF0621", x"AB6A20C0620D1C6F", 
+     x"79E90DBC98F92CCA", x"866ECEDD8072BB0E", x"8B54536F2F3E64A8",
+     x"EA51D3975595B86B", x"CAFFC6AC4542DE31", x"8DD45A2DDF90796C",
+     x"1029D55E880EC2D0", x"5D86CB23639DBEA9", x"1D1CA853AE7C0C5F",
+     x"CE332329248F3228", x"8405D1ABE24FB942", x"E643D78090CA4207",
+     x"48221B9937748A23", x"DD7C0BBD61FAFD54", x"2FBC291A570DB5C4",
+     x"E07C30D7E4E26E12", x"0953E2258E8E90A1", x"5B711BC4CEEBF2EE",
+     x"CC083F1E6D9E85F6", x"D2FD8867D50D2DFE", x"06E7EA22CE92708F",
+     x"166B40B44ABA4BD6");
+
 
 
   signal s_clk      : std_logic := '0';
@@ -100,45 +95,52 @@ begin
   
   teststimuliP : process is
   begin
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_key     <= x"5555555555555555";
+    s_datain  <= x"8000000000000000";
     report "# encryption test";
-    for index in 0 to 18 loop
+    for index in s_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk);
-        s_mode    <= '0';
         s_validin <= '1';
-        s_key     <= s_key_values(index);
-        s_datain  <= s_plain_values(index);
+        if(index /= 0) then
+          s_datain <= '0' & s_datain(0 to 62);
+        end if;
     end loop;
     wait until rising_edge(s_clk);
     s_validin <= '0';
     wait for 100 ns;
     report "# decryption test";
-    for index in 0 to 18 loop
+    for index in s_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk);
         s_mode    <= '1';
         s_validin <= '1';
-        s_key     <= s_key_values(index);
-        s_datain  <= s_crypt_values(index);
+        s_datain  <= s_variable_plaintext_known_answers(index);
     end loop;
     wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
     wait;
   end process teststimuliP;
   
   
   testcheckerP : process is
+    variable v_variable_ciphertext_known_answers : std_logic_vector(0 to 63) := x"8000000000000000";
   begin
-    for index in 0 to 18 loop
+    for index in s_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
-        if(s_dataout /= s_crypt_values(index)) then
+        if(s_dataout /= s_variable_plaintext_known_answers(index)) then
           report "encryption error";
         end if;
     end loop;
-    for index in 0 to 18 loop
+    for index in s_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
-        if(s_dataout /= s_plain_values(index)) then
+        if(s_dataout /= v_variable_ciphertext_known_answers) then
           report "decryption error";
         end if;
+        v_variable_ciphertext_known_answers := '0' & v_variable_ciphertext_known_answers(0 to 62);
     end loop;
     wait;
   end process testcheckerP;
