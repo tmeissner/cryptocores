@@ -86,6 +86,33 @@ architecture rtl of tb_des is
      x"A1AB2190545B91D7", x"0875041E64C570F7", x"5A594528BEBEF1CC",
      x"FCDB3291DE21F0C0", x"869EFD7F9F265A09");
 
+  signal s_permutation_operation_known_answers_keys : t_array(0 to 31) :=
+    (x"1046913489980131", x"1007103489988020", x"10071034C8980120",
+     x"1046103489988020", x"1086911519190101", x"1086911519580101",
+     x"5107B01519580101", x"1007B01519190101", x"3107915498080101",
+     x"3107919498080101", x"10079115B9080140", x"3107911598080140",
+     x"1007D01589980101", x"9107911589980101", x"9107D01589190101",
+     x"1007D01598980120", x"1007940498190101", x"0107910491190401",
+     x"0107910491190101", x"0107940491190401", x"19079210981A0101",
+     x"1007911998190801", x"10079119981A0801", x"1007921098190101",
+     x"100791159819010B", x"1004801598190101", x"1004801598190102",
+     x"1004801598190108", x"1002911598100104", x"1002911598190104",
+     x"1002911598100201", x"1002911698100101");
+
+  signal s_permutation_operation_known_answers_cipher : t_array(0 to 31) :=
+    (x"88D55E54F54C97B4", x"0C0CC00C83EA48FD", x"83BC8EF3A6570183",
+     x"DF725DCAD94EA2E9", x"E652B53B550BE8B0", x"AF527120C485CBB0",
+     x"0F04CE393DB926D5", x"C9F00FFC74079067", x"7CFD82A593252B4E",
+     x"CB49A2F9E91363E3", x"00B588BE70D23F56", x"406A9A6AB43399AE",
+     x"6CB773611DCA9ADA", x"67FD21C17DBB5D70", x"9592CB4110430787",
+     x"A6B7FF68A318DDD3", x"4D102196C914CA16", x"2DFA9F4573594965",
+     x"B46604816C0E0774", x"6E7E6221A4F34E87", x"AA85E74643233199",
+     x"2E5A19DB4D1962D6", x"23A866A809D30894", x"D812D961F017D320",
+     x"055605816E58608F", x"ABD88E8B1B7716F1", x"537AC95BE69DA1E1",
+     x"AED0F6AE3C25CDD8", x"B3E35A5EE53E7B8D", x"61C79C71921A2EF8",
+     x"E2F5728F0995013C", x"1AEAC39A61F0A464");
+
+
 
   signal s_clk      : std_logic := '0';
   signal s_mode     : std_logic := '0';
@@ -171,6 +198,20 @@ begin
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
+    -- Permutation Operation Known Answer Test
+    -- Encryption
+    s_datain <= x"0000000000000000";
+    for index in s_permutation_operation_known_answers_keys'range loop
+      wait until rising_edge(s_clk);
+        s_validin <= '1';
+        s_key     <= s_permutation_operation_known_answers_keys(index);
+    end loop;
+    wait until rising_edge(s_clk);
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
+    wait for 100 ns;
 
     -- Variable plaintext known answer test
     -- Decryption
@@ -215,6 +256,14 @@ begin
     for index in s_variable_key_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
         assert (s_dataout = s_variable_key_known_answers(index))
+          report "encryption error"
+          severity error;
+    end loop;
+    report "# Permutation operation known answer test";
+    report "# Encryption";
+    for index in s_permutation_operation_known_answers_cipher'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        assert (s_dataout = s_permutation_operation_known_answers_cipher(index))
           report "encryption error"
           severity error;
     end loop;
