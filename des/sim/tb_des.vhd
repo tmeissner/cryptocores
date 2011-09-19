@@ -112,7 +112,32 @@ architecture rtl of tb_des is
      x"AED0F6AE3C25CDD8", x"B3E35A5EE53E7B8D", x"61C79C71921A2EF8",
      x"E2F5728F0995013C", x"1AEAC39A61F0A464");
 
+  signal s_substitution_table_test_keys : t_array(0 to 18) :=
+    (x"7CA110454A1A6E57", x"0131D9619DC1376E", x"07A1133E4A0B2686",
+     x"3849674C2602319E", x"04B915BA43FEB5B6", x"0113B970FD34F2CE",
+     x"0170F175468FB5E6", x"43297FAD38E373FE", x"07A7137045DA2A16",
+     x"04689104C2FD3B2F", x"37D06BB516CB7546", x"1F08260D1AC2465E",
+     x"584023641ABA6176", x"025816164629B007", x"49793EBC79B3258F",
+     x"4FB05E1515AB73A7", x"49E95D6D4CA229BF", x"018310DC409B26D6",
+     x"1C587F1C13924FEF");
 
+  signal s_substitution_table_test_plain : t_array(0 to 18) :=
+    (x"01A1D6D039776742", x"5CD54CA83DEF57DA", x"0248D43806F67172",
+     x"51454B582DDF440A", x"42FD443059577FA2", x"059B5E0851CF143A",
+     x"0756D8E0774761D2", x"762514B829BF486A", x"3BDD119049372802",
+     x"26955F6835AF609A", x"164D5E404F275232", x"6B056E18759F5CCA",
+     x"004BD6EF09176062", x"480D39006EE762F2", x"437540C8698F3CFA",
+     x"072D43A077075292", x"02FE55778117F12A", x"1D9D5C5018F728C2",
+     x"305532286D6F295A");
+
+  signal s_substitution_table_test_cipher : t_array(0 to 18) :=
+    (x"690F5B0D9A26939B", x"7A389D10354BD271", x"868EBB51CAB4599A",
+     x"7178876E01F19B2A", x"AF37FB421F8C4095", x"86A560F10EC6D85B",
+     x"0CD3DA020021DC09", x"EA676B2CB7DB2B7A", x"DFD64A815CAF1A0F",
+     x"5C513C9C4886C088", x"0A2AEEAE3FF4AB77", x"EF1BF03E5DFA575A",
+     x"88BF0DB6D70DEE56", x"A1F9915541020B56", x"6FBF1CAFCFFD0556",
+     x"2F22E49BAB7CA1AC", x"5A6B612CC26CCE4A", x"5F4C038ED12B2E41",
+     x"63FAC0D034D9F793");
 
   signal s_clk      : std_logic := '0';
   signal s_mode     : std_logic := '0';
@@ -198,13 +223,27 @@ begin
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
-    -- Permutation Operation Known Answer Test
+    -- Permutation operation known answer test
     -- Encryption
     s_datain <= x"0000000000000000";
     for index in s_permutation_operation_known_answers_keys'range loop
       wait until rising_edge(s_clk);
         s_validin <= '1';
         s_key     <= s_permutation_operation_known_answers_keys(index);
+    end loop;
+    wait until rising_edge(s_clk);
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
+    wait for 100 ns;
+    -- Substitution table known answer test
+    -- Encryption
+    for index in s_substitution_table_test_keys'range loop
+      wait until rising_edge(s_clk);
+        s_validin <= '1';
+        s_key     <= s_substitution_table_test_keys(index);
+        s_datain  <= s_substitution_table_test_plain(index);
     end loop;
     wait until rising_edge(s_clk);
     s_mode    <= '0';
@@ -264,6 +303,14 @@ begin
     for index in s_permutation_operation_known_answers_cipher'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
         assert (s_dataout = s_permutation_operation_known_answers_cipher(index))
+          report "encryption error"
+          severity error;
+    end loop;
+    report "# Substitution table known answer test";
+    report "# Encryption";
+    for index in s_substitution_table_test_cipher'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        assert (s_dataout = s_substitution_table_test_cipher(index))
           report "encryption error"
           severity error;
     end loop;
