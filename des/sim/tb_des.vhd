@@ -26,7 +26,7 @@
 -- Revision 1.0.2 2011/09/18
 -- includes more tests of NIST 800-16 publication
 -- Revision 1.1 2011/09/18
--- now with all ecb tests of NIST 800-16 publication except the modes-tests
+-- now with all ecb tests of NIST 800-17 publication except the modes-tests
 
 
 library ieee;
