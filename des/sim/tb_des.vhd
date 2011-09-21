@@ -1,6 +1,6 @@
 -- ======================================================================
 -- DES encryption/decryption testbench
--- tests according to NIST 800-16 special publication
+-- tests according to NIST 800-17 special publication
 -- Copyright (C) 2011 Torsten Meissner
 -------------------------------------------------------------------------
 -- This program is free software; you can redistribute it and/or modify
@@ -25,6 +25,8 @@
 -- tests partial adopted to NIST 800-16 publication
 -- Revision 1.0.2 2011/09/18
 -- includes more tests of NIST 800-16 publication
+-- Revision 1.1 2011/09/18
+-- now with all ecb tests of NIST 800-16 publication except the modes-tests
 
 
 library ieee;
@@ -169,12 +171,12 @@ begin
   
   teststimuliP : process is
   begin
+    -- ENCRYPTION TESTS
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= x"0101010101010101";
     s_datain  <= x"8000000000000000";
     -- Variable plaintext known answer test
-    -- Encryption
     for index in c_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk);
         s_validin <= '1';
@@ -189,7 +191,6 @@ begin
     s_datain  <= (others => '0');
     wait for 100 ns;
     -- Inverse permutation known answer test
-    -- Encryption
     s_key     <= x"0101010101010101";
     for index in c_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk);
@@ -203,7 +204,6 @@ begin
     s_datain  <= (others => '0');
     wait for 100 ns;
     -- Variable key known answer test
-    -- Encryption
     s_key     <= x"8000000000000000";
     for index in c_variable_key_known_answers'range loop
       wait until rising_edge(s_clk);
@@ -224,7 +224,6 @@ begin
     s_datain  <= (others => '0');
     wait for 100 ns;
     -- Permutation operation known answer test
-    -- Encryption
     s_datain <= x"0000000000000000";
     for index in c_permutation_operation_known_answers_keys'range loop
       wait until rising_edge(s_clk);
@@ -238,7 +237,6 @@ begin
     s_datain  <= (others => '0');
     wait for 100 ns;
     -- Substitution table known answer test
-    -- Encryption
     for index in c_substitution_table_test_keys'range loop
       wait until rising_edge(s_clk);
         s_validin <= '1';
@@ -246,20 +244,85 @@ begin
         s_datain  <= c_substitution_table_test_plain(index);
     end loop;
     wait until rising_edge(s_clk);
+    -- DECRYPTION TESTS
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
-
-    -- Variable plaintext known answer test
-    -- Decryption
+    -- Variable ciphertext known answer test
     s_key     <= x"0101010101010101";
     for index in c_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk);
         s_mode    <= '1';
         s_validin <= '1';
         s_datain  <= c_variable_plaintext_known_answers(index);
+    end loop;
+    wait until rising_edge(s_clk);
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
+    wait for 100 ns;
+    -- Initial permutation known answer test
+    s_key     <= x"0101010101010101";
+    s_datain  <= x"8000000000000000";
+    for index in c_variable_plaintext_known_answers'range loop
+      wait until rising_edge(s_clk);
+        s_mode    <= '1';
+        s_validin <= '1';
+        if(index /= 0) then
+          s_datain <= '0' & s_datain(0 to 62);
+        end if;
+    end loop;
+    wait until rising_edge(s_clk);
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
+    -- Variable key known answer test
+    s_key     <= x"8000000000000000";
+    for index in c_variable_key_known_answers'range loop
+      wait until rising_edge(s_clk);
+        s_mode    <= '1';
+        s_validin <= '1';
+        s_datain  <= c_variable_key_known_answers(index);
+        if(index /= 0) then
+          if(index = 7 or index = 14 or index = 21 or index = 28 or index = 35 or
+             index = 42 or index = 49) then
+            s_key <= "00" & s_key(0 to 61);
+          else
+            s_key <= '0' & s_key(0 to 62);
+          end if;
+        end if;
+    end loop;
+    wait until rising_edge(s_clk);
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
+    wait for 100 ns;
+    -- Permutation operation known answer test
+    for index in c_permutation_operation_known_answers_keys'range loop
+      wait until rising_edge(s_clk);
+        s_mode    <= '1';
+        s_validin <= '1';
+        s_datain  <= c_permutation_operation_known_answers_cipher(index);
+        s_key     <= c_permutation_operation_known_answers_keys(index);
+    end loop;
+    wait until rising_edge(s_clk);
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
+    wait for 100 ns;
+    -- Substitution table known answer test
+    for index in c_substitution_table_test_keys'range loop
+      wait until rising_edge(s_clk);
+        s_mode    <= '1';
+        s_validin <= '1';
+        s_key     <= c_substitution_table_test_keys(index);
+        s_datain  <= c_substitution_table_test_cipher(index);
     end loop;
     wait until rising_edge(s_clk);
     s_mode    <= '0';
@@ -273,8 +336,8 @@ begin
   testcheckerP : process is
     variable v_plaintext : std_logic_vector(0 to 63) := x"8000000000000000";
   begin
+    report "# ENCRYPTION TESTS";
     report "# Variable plaintext known answer test";
-    report "# Encryption";
     for index in c_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
         assert (s_dataout = c_variable_plaintext_known_answers(index))
@@ -282,7 +345,6 @@ begin
           severity error;
     end loop;
     report "# Inverse permutation known answer test";
-    report "# Encryption";
     for index in c_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
         assert (s_dataout = v_plaintext)
@@ -291,7 +353,6 @@ begin
         v_plaintext := '0' & v_plaintext(0 to 62);
     end loop;
     report "# Variable key known answer test";
-    report "# Encryption";
     for index in c_variable_key_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
         assert (s_dataout = c_variable_key_known_answers(index))
@@ -299,7 +360,6 @@ begin
           severity error;
     end loop;
     report "# Permutation operation known answer test";
-    report "# Encryption";
     for index in c_permutation_operation_known_answers_cipher'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
         assert (s_dataout = c_permutation_operation_known_answers_cipher(index))
@@ -307,16 +367,14 @@ begin
           severity error;
     end loop;
     report "# Substitution table known answer test";
-    report "# Encryption";
     for index in c_substitution_table_test_cipher'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
         assert (s_dataout = c_substitution_table_test_cipher(index))
           report "encryption error"
           severity error;
     end loop;
-
-    report "# Variable plaintext known answer test";
-    report "# Decryption";
+    report "# DECRYPTION TESTS";
+    report "# Variable ciphertext known answer test";
     v_plaintext := x"8000000000000000";
     for index in c_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
@@ -324,6 +382,34 @@ begin
           report "decryption error"
           severity error;
         v_plaintext := '0' & v_plaintext(0 to 62);
+    end loop;
+    report "# Initial permutation known answer test";
+    for index in c_variable_plaintext_known_answers'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        assert (s_dataout = c_variable_plaintext_known_answers(index))
+          report "decryption error"
+          severity error;
+    end loop;
+    report "# Variable key known answer test";
+    for index in c_variable_key_known_answers'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        assert (s_dataout = x"0000000000000000")
+          report "decryption error"
+          severity error;
+    end loop;
+    report "# Permutation operation known answer test";
+    for index in c_permutation_operation_known_answers_keys'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        assert (s_dataout = x"0000000000000000")
+          report "decryption error"
+          severity error;
+    end loop;
+    report "# Substitution table known answer test";
+    for index in c_substitution_table_test_cipher'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        assert (s_dataout = c_substitution_table_test_plain(index))
+          report "decryption error"
+          severity error;
     end loop;
     report "# Successfully passed all tests";
     wait;
