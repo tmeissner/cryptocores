@@ -138,6 +138,7 @@ architecture rtl of tb_cbcdes is
      x"88BF0DB6D70DEE56", x"A1F9915541020B56", x"6FBF1CAFCFFD0556",
      x"2F22E49BAB7CA1AC", x"5A6B612CC26CCE4A", x"5F4C038ED12B2E41",
      x"63FAC0D034D9F793");
+  signal s_cbc_answers : t_array(0 to 19);
 
   signal s_reset    : std_logic := '0';
   signal s_clk      : std_logic := '0';
@@ -281,6 +282,28 @@ begin
         s_start   <= '0';
     end loop;
     wait until rising_edge(s_clk);
+    s_start   <= '0';
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_iv      <= (others => '0');
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
+    wait for 1 us;
+    -- cbc known answers test
+    for index in c_substitution_table_test_keys'range loop
+      wait until rising_edge(s_clk) and s_ready = '1';
+        if(index = 0) then
+          s_start <= '1';
+          s_key   <= x"5555555555555555";
+          s_iv    <= x"DEADBEEFDEADBEEF";
+        end if;
+        s_validin <= '1';
+        s_datain  <= c_substitution_table_test_plain(index);
+      wait until rising_edge(s_clk);
+        s_validin <= '0';
+        s_start   <= '0';
+    end loop;
+    wait until rising_edge(s_clk);
     -- DECRYPTION TESTS
     s_start   <= '0';
     s_mode    <= '0';
@@ -404,6 +427,30 @@ begin
     s_iv      <= (others => '0');
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
+    wait for 1 us;
+    -- cbc known answer test
+    for index in c_substitution_table_test_keys'range loop
+      wait until rising_edge(s_clk) and s_ready = '1';
+        if(index = 0) then
+          s_mode  <= '1';
+          s_start <= '1';
+          s_key   <= x"5555555555555555";
+          s_iv    <= x"DEADBEEFDEADBEEF";
+        end if;
+        s_validin <= '1';
+        s_datain  <= s_cbc_answers(index);
+      wait until rising_edge(s_clk);
+        s_validin <= '0';
+        s_start   <= '0';
+        s_mode    <= '0';
+    end loop;
+    wait until rising_edge(s_clk);
+    s_start   <= '0';
+    s_mode    <= '0';
+    s_validin <= '0';
+    s_iv      <= (others => '0');
+    s_key     <= (others => '0');
+    s_datain  <= (others => '0');
     wait;
   end process teststimuliP;
   
@@ -448,6 +495,10 @@ begin
           report "encryption error"
           severity error;
     end loop;
+    for index in c_substitution_table_test_cipher'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        s_cbc_answers(index) <= s_dataout;
+    end loop;
     report "# DECRYPTION TESTS";
     report "# Variable ciphertext known answer test";
     v_plaintext := x"8000000000000000";
@@ -480,6 +531,13 @@ begin
           severity error;
     end loop;
     report "# Substitution table known answer test";
+    for index in c_substitution_table_test_cipher'range loop
+      wait until rising_edge(s_clk) and s_validout = '1';
+        assert (s_dataout = c_substitution_table_test_plain(index))
+          report "decryption error"
+          severity error;
+    end loop;
+    report "# cbc known answer test";
     for index in c_substitution_table_test_cipher'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
         assert (s_dataout = c_substitution_table_test_plain(index))
