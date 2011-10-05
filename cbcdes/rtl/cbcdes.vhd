@@ -97,12 +97,14 @@ begin
       s_iv     <= (others => '0');
       s_datain <= (others => '0');
     elsif(rising_edge(clk_i)) then
-        s_reset  <= reset_i;
+      s_reset  <= reset_i;
       if(valid_i = '1' and s_ready = '1') then
-        s_mode   <= mode_i;
         s_start  <= start_i;
-        s_iv     <= iv_i;
         s_datain <= data_i;
+      end if;
+      if(valid_i = '1' and s_ready = '1' and start_i = '1') then
+        s_mode   <= mode_i;
+        s_iv     <= iv_i;
       end if;
     end if;
   end process inputregister;
