@@ -30,7 +30,7 @@ sim : tb_cbcdes.ghw
 tb_cbcdes.ghw : ../rtl/*.vhd tb_cbcdes.vhd
 	ghdl -a ../rtl/des_pkg.vhd ../rtl/des.vhd ../rtl/cbcdes.vhd tb_cbcdes.vhd
 	ghdl -e tb_cbcdes
-	ghdl -r tb_cbcdes --wave=tb_cbcdes.ghw --assert-level=error --stop-time=100us
+	ghdl -r tb_cbcdes --wave=tb_cbcdes.ghw --assert-level=error --stop-time=200us
 	
 wave : tb_cbcdes.ghw
 	gtkwave tb_cbcdes.ghw
