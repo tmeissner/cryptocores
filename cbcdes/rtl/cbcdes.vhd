@@ -21,6 +21,8 @@
 
 -- Revision 0.1  2011/09/23
 -- Initial release, incomplete and may contain bugs
+-- Revision 0.2  2011/10/06
+-- corrected some bugs which were found while testing cbc ability
 
 
 library ieee;
@@ -63,11 +65,16 @@ architecture rtl of cbcdes is
  
 
   signal s_mode       : std_logic;
+  signal s_des_mode   : std_logic;
   signal s_start      : std_logic;
+  signal s_key        : std_logic_vector(0 to 63);
+  signal s_des_key    : std_logic_vector(0 to 63);
   signal s_iv         : std_logic_vector(0 to 63);
   signal s_datain     : std_logic_vector(0 to 63);
+  signal s_datain_d   : std_logic_vector(0 to 63);
   signal s_des_datain : std_logic_vector(0 to 63);
   signal s_validin    : std_logic;
+  signal s_des_dataout : std_logic_vector(0 to 63);
   signal s_dataout    : std_logic_vector(0 to 63);
   signal s_validout   : std_logic;
   signal s_ready      : std_logic;
@@ -78,11 +85,13 @@ begin
 
 
   s_des_datain <= iv_i xor data_i      when mode_i = '0' and start_i = '1' else
-                  s_dataout xor data_i when mode_i = '0' and start_i = '0' else
+                  s_dataout xor data_i when s_mode = '0' and start_i = '0' else
                   data_i;
-  data_o       <= s_iv xor s_dataout     when s_mode = '1' and s_start = '1' else
-                  s_datain xor s_dataout when s_mode = '1' and s_start = '0' else
-                  s_dataout;
+  data_o       <= s_iv xor s_des_dataout     when s_mode = '1' and s_start = '1' else
+                  s_datain_d xor s_des_dataout when s_mode = '1' and s_start = '0' else
+                  s_des_dataout;
+  s_des_key    <= key_i  when start_i = '1' else s_key;
+  s_des_mode   <= mode_i when start_i = '1' else s_mode;
 
   ready_o     <= s_ready;
   s_validin   <= valid_i and s_ready;
@@ -91,19 +100,23 @@ begin
   inputregister : process(clk_i, reset_i) is
   begin
     if(reset_i = '0') then
-      s_reset  <= '0';
-      s_mode   <= '0';
-      s_start  <= '0';
-      s_iv     <= (others => '0');
-      s_datain <= (others => '0');
+      s_reset    <= '0';
+      s_mode     <= '0';
+      s_start    <= '0';
+      s_key      <= (others => '0');
+      s_iv       <= (others => '0');
+      s_datain   <= (others => '0');
+      s_datain_d <= (others => '0');
     elsif(rising_edge(clk_i)) then
       s_reset  <= reset_i;
       if(valid_i = '1' and s_ready = '1') then
         s_start  <= start_i;
-        s_datain <= data_i;
+        s_datain   <= data_i;
+        s_datain_d <= s_datain;
       end if;
       if(valid_i = '1' and s_ready = '1' and start_i = '1') then
         s_mode   <= mode_i;
+        s_key    <= key_i;
         s_iv     <= iv_i;
       end if;
     end if;
@@ -113,13 +126,15 @@ begin
   outputregister : process(clk_i, reset_i) is
   begin
     if(reset_i = '0') then
-      s_ready <= '0';
+      s_ready   <= '0';
+      s_dataout <= (others => '0');
     elsif(rising_edge(clk_i)) then
       if(valid_i = '1' and s_ready = '1') then
         s_ready <= '0';
       end if;
       if(s_validout = '1' or (reset_i = '1' and s_reset = '0')) then
-        s_ready <= '1';
+        s_ready   <= '1';
+        s_dataout <= s_des_dataout;
       end if;
     end if;
   end process outputregister;
@@ -128,11 +143,11 @@ begin
   i_des : des
     port map (
       clk_i   => clk_i,
-      mode_i  => mode_i,
-      key_i   => key_i,
+      mode_i  => s_des_mode,
+      key_i   => s_des_key,
       data_i  => s_des_datain,
       valid_i => s_validin,
-      data_o  => s_dataout,
+      data_o  => s_des_dataout,
       valid_o => s_validout
     );
 
