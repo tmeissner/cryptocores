@@ -23,6 +23,8 @@
 -- Initial release, variable plaintext known answer test integrated
 -- Revision 1.1   2011/09/25
 -- integrated all encryption tests of NIST 800-17 publication except the modes-tests
+-- Revision 1.2   2011/10/05
+-- integrated all decryption tests of NIST 800-17 publication except the modes-tests
 
 
 library ieee;
