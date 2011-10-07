@@ -66,11 +66,14 @@ architecture rtl of tdes is
   signal s_reset         : std_logic;
   signal s_mode          : std_logic;
   signal s_des2_mode     : std_logic;
-  signal s_des1_validin  : std_logic;
+  signal s_des1_validin  : std_logic := '0';
   signal s_des1_validout : std_logic;
   signal s_des2_validout : std_logic;
   signal s_des3_validout : std_logic;
-  signal s_des2_key      : std_logic_vector(0 to 63);
+  signal s_key1          : std_logic_vector(0 to 63);
+  signal s_key2          : std_logic_vector(0 to 63);
+  signal s_key3          : std_logic_vector(0 to 63);
+  signal s_des1_key      : std_logic_vector(0 to 63);
   signal s_des3_key      : std_logic_vector(0 to 63);
   signal s_des1_dataout  : std_logic_vector(0 to 63);
   signal s_des2_dataout  : std_logic_vector(0 to 63);
@@ -83,19 +86,25 @@ begin
   s_des2_mode    <= not(s_mode);
   s_des1_validin <= valid_i and s_ready;
 
+  s_des1_key <= key1_i when mode_i = '0' else key3_i;
+  s_des3_key <= s_key3 when s_mode = '0' else s_key1;
+
+
   inputregister : process(clk_i, reset_i) is
   begin
     if(reset_i = '0') then
-      s_reset    <= '0';
-      s_mode     <= '0';
-      s_des2_key <= (others => '0');
-      s_des3_key <= (others => '0');
+      s_reset <= '0';
+      s_mode  <= '0';
+      s_key1  <= (others => '0');
+      s_key2  <= (others => '0');
+      s_key3  <= (others => '0');
     elsif(rising_edge(clk_i)) then
       s_reset  <= reset_i;
       if(valid_i = '1' and s_ready = '1') then
-        s_mode     <= mode_i;
-        s_des2_key <= key2_i;
-        s_des3_key <= key3_i;
+        s_mode <= mode_i;
+        s_key1 <= key1_i;
+        s_key2 <= key2_i;
+        s_key3 <= key3_i;
       end if;
     end if;
   end process inputregister;
@@ -120,7 +129,7 @@ begin
     port map (
       clk_i   => clk_i,
       mode_i  => mode_i,
-      key_i   => key1_i,
+      key_i   => s_des1_key,
       data_i  => data_i,
       valid_i => s_des1_validin,
       data_o  => s_des1_dataout,
@@ -132,7 +141,7 @@ begin
     port map (
       clk_i   => clk_i,
       mode_i  => s_des2_mode,
-      key_i   => s_des2_key,
+      key_i   => s_key2,
       data_i  => s_des1_dataout,
       valid_i => s_des1_validout,
       data_o  => s_des2_dataout,
