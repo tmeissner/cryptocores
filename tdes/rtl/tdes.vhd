@@ -31,6 +31,7 @@ use work.des_pkg.all;
 
 entity tdes is
   port (
+    reset_i     : in  std_logic;                  -- async reset
     clk_i       : in  std_logic;                  -- clock
     mode_i      : in  std_logic;                  -- tdes-modus: 0 = encrypt, 1 = decrypt
     key1_i      : in  std_logic_vector(0 TO 63);  -- key input
@@ -61,9 +62,24 @@ architecture rtl of tdes is
   end component des;
 
 
+  signal s_ready         : std_logic;
+  signal s_reset         : std_logic;
+  signal s_mode          : std_logic;
+  signal s_des2_mode     : std_logic;
+  signal s_des1_validin  : std_logic;
+  signal s_des1_validout : std_logic;
+  signal s_des2_validout : std_logic;
+  signal s_des3_validout : std_logic;
+  signal s_des2_key      : std_logic_vector(0 to 63);
+  signal s_des3_key      : std_logic_vector(0 to 63);
+  signal s_des1_dataout  : std_logic_vector(0 to 63);
+  signal s_des2_dataout  : std_logic_vector(0 to 63);
+
 begin
 
 
+  ready_o        <= s_ready;
+  valid_o        <= s_des3_validout;
   s_des2_mode    <= not(s_mode);
   s_des1_validin <= valid_i and s_ready;
 
@@ -76,7 +92,7 @@ begin
       s_des3_key <= (others => '0');
     elsif(rising_edge(clk_i)) then
       s_reset  <= reset_i;
-      if(valid_i = '1' and s_ready = '1' and start_i = '1') then
+      if(valid_i = '1' and s_ready = '1') then
         s_mode     <= mode_i;
         s_des2_key <= key2_i;
         s_des3_key <= key3_i;
@@ -93,7 +109,7 @@ begin
       if(valid_i = '1' and s_ready = '1') then
         s_ready <= '0';
       end if;
-      if(s_validout = '1' or (reset_i = '1' and s_reset = '0')) then
+      if(s_des3_validout = '1' or (reset_i = '1' and s_reset = '0')) then
         s_ready   <= '1';
       end if;
     end if;
@@ -106,7 +122,7 @@ begin
       mode_i  => mode_i,
       key_i   => key1_i,
       data_i  => data_i,
-      valid_i => s_des1_valid,
+      valid_i => s_des1_validin,
       data_o  => s_des1_dataout,
       valid_o => s_des1_validout
     );
