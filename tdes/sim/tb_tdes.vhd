@@ -58,7 +58,7 @@ architecture rtl of tb_tdes is
   signal s_validin  : std_logic := '0';
   signal s_ready    : std_logic := '0';
   signal s_dataout  : std_logic_vector(0 to 63);
-  signal s_validout : std_logic;
+  signal s_validout : std_logic := '0';
 
 
   component tdes is
