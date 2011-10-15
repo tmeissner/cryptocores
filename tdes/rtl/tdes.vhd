@@ -51,6 +51,7 @@ architecture rtl of tdes is
 
   component des is
     port (
+      reset_i     : in  std_logic;
       clk_i       : IN  std_logic;                  -- clock
       mode_i      : IN  std_logic;                  -- des-modus: 0 = encrypt, 1 = decrypt
       key_i       : IN  std_logic_vector(0 TO 63);  -- key input
@@ -127,6 +128,7 @@ begin
 
   i1_des : des
     port map (
+      reset_i => reset_i,
       clk_i   => clk_i,
       mode_i  => mode_i,
       key_i   => s_des1_key,
@@ -139,6 +141,7 @@ begin
 
   i2_des : des
     port map (
+      reset_i => reset_i,
       clk_i   => clk_i,
       mode_i  => s_des2_mode,
       key_i   => s_key2,
@@ -151,6 +154,7 @@ begin
 
   i3_des : des
     port map (
+      reset_i => reset_i,
       clk_i   => clk_i,
       mode_i  => s_mode,
       key_i   => s_des3_key,

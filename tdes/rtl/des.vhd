@@ -33,6 +33,7 @@ USE work.des_pkg.ALL;
 
 ENTITY des IS
   PORT (
+    reset_i     : in  std_logic;                  -- async reset
     clk_i       : IN  std_logic;                  -- clock
     mode_i      : IN  std_logic;                  -- des-modus: 0 = encrypt, 1 = decrypt
     key_i       : IN  std_logic_vector(0 TO 63);  -- key input
@@ -140,7 +141,10 @@ BEGIN
     VARIABLE mode  : std_logic_vector(0 TO 16) := (others => '0');
     VARIABLE valid : std_logic_vector(0 TO 17) := (others => '0');
   BEGIN
-    IF rising_edge( clk_i ) THEN
+    if(reset_i = '0') then
+      data_o  <= (others => '0');
+      valid_o <= '0';
+    elsif rising_edge( clk_i ) THEN
       -- shift registers
       valid(1 TO 17) := valid(0 TO 16);
       valid(0) := valid_i;

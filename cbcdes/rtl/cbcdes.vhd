@@ -53,6 +53,7 @@ architecture rtl of cbcdes is
 
   component des is
     port (
+      reset_i     : in  std_logic;
       clk_i       : IN  std_logic;                  -- clock
       mode_i      : IN  std_logic;                  -- des-modus: 0 = encrypt, 1 = decrypt
       key_i       : IN  std_logic_vector(0 TO 63);  -- key input
@@ -142,6 +143,7 @@ begin
 
   i_des : des
     port map (
+      reset_i => s_reset,
       clk_i   => clk_i,
       mode_i  => s_des_mode,
       key_i   => s_des_key,

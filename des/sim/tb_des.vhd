@@ -141,6 +141,7 @@ architecture rtl of tb_des is
      x"2F22E49BAB7CA1AC", x"5A6B612CC26CCE4A", x"5F4C038ED12B2E41",
      x"63FAC0D034D9F793");
 
+  signal s_reset    : std_logic := '0';
   signal s_clk      : std_logic := '0';
   signal s_mode     : std_logic := '0';
   signal s_key      : std_logic_vector(0 to 63) := (others => '0');
@@ -152,6 +153,7 @@ architecture rtl of tb_des is
 
   component des is
     port (
+      reset_i     : in  std_logic;
       clk_i       : in  std_logic;
       mode_i      : in  std_logic;
       key_i       : in  std_logic_vector(0 TO 63);
@@ -166,8 +168,8 @@ architecture rtl of tb_des is
 begin
 
 
-  s_clk <= not(s_clk) after 10 ns;
-  
+  s_clk   <= not(s_clk) after 10 ns;
+  s_reset <= '1' after 100 ns;
   
   teststimuliP : process is
   begin
@@ -176,6 +178,7 @@ begin
     s_validin <= '0';
     s_key     <= x"0101010101010101";
     s_datain  <= x"8000000000000000";
+    wait until s_reset = '1';
     -- Variable plaintext known answer test
     for index in c_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk);
@@ -418,6 +421,7 @@ begin
 
   i_des : des
   port map (
+    reset_i  => s_reset,
     clk_i    => s_clk,
     mode_i   => s_mode,
     key_i    => s_key,
