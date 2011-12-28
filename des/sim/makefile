@@ -33,7 +33,7 @@ tb_des.ghw : ../rtl/*.vhd tb_des.vhd
 	ghdl -r tb_des --wave=tb_des.ghw --assert-level=error --stop-time=11us
 	
 wave : tb_des.ghw
-	gtkwave tb_des.ghw
+	gtkwave -T tb_des.tcl tb_des.ghw
 	
 clean :
 	echo "# cleaning simulation files"
