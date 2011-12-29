@@ -33,7 +33,7 @@ tb_cbcdes.ghw : ../rtl/*.vhd tb_cbcdes.vhd
 	ghdl -r tb_cbcdes --wave=tb_cbcdes.ghw --assert-level=error --stop-time=220us
 	
 wave : tb_cbcdes.ghw
-	gtkwave tb_cbcdes.ghw
+	gtkwave -T tb_cbcdes.tcl tb_cbcdes.ghw
 	
 clean :
 	echo "# cleaning simulation files"
