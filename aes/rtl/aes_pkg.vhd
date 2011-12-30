@@ -146,8 +146,8 @@ package body aes_pkg is
     v_a := a;
     v_b := b;
     for index in 0 to 7 loop
-      if(b(0) = '1') then
-        v_data := v_data xor a;
+      if(v_b(0) = '1') then
+        v_data := v_data xor v_a;
       end if;
       v_hi_bit_set := a(7);
       v_a          := v_a(6 downto 0) & '0';
