@@ -115,12 +115,23 @@ package body aes_pkg is
   end function invbytesub;
 
 
---  function shiftrow (input : t_datatable2d) return t_datatable2d is
---    variable v_datamatrix : t_datatable2d;
---  begin
---    v_datamatrix := input;
---    return v_datamatrix;
---  end function shiftrow;
+  function shiftrow (input : t_datatable2d) return t_datatable2d is
+    variable v_datamatrix : t_datatable2d;
+  begin
+    -- copy input in internal matrix
+    v_datamatrix := input;
+    -- 2nd row
+    v_datamatrix(1)(1) := input(1)(0);
+    v_datamatrix(1)(2) := input(1)(1);
+    v_datamatrix(1)(3) := input(1)(2);
+    -- 3rd row
+    v_datamatrix(2)(2) := input(2)(0);
+    v_datamatrix(2)(3) := input(2)(1);
+    -- 4rd row
+    v_datamatrix(3)(3) := input(3)(0);
+    -- return manipulated internal matrix
+    return v_datamatrix;
+  end function shiftrow;
 
 
 end package body aes_pkg;
