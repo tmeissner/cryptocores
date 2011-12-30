@@ -80,6 +80,8 @@ package aes_pkg is
   function bytesub    (input : std_logic_vector(7 downto 0)) return std_logic_vector;
   function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector;
 
+  function shiftrow (input : t_datatable2d) return t_datatable2d;
+  
   function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
 
 
@@ -94,7 +96,7 @@ package body aes_pkg is
   begin
     for outdex in 0 to 3 loop
       for index in 0 to 3 loop
-        v_datamatrix(outdex)(index) := input(outdex*32+(index+1)*7 downto outdex*32+index*8);
+        v_datamatrix(index)(outdex) := input(outdex*32+(index+1)*7 downto outdex*32+index*8);
       end loop;
     end loop;
     return v_datamatrix;
@@ -111,6 +113,14 @@ package body aes_pkg is
   begin
     return(c_sbox_invers(to_integer(unsigned(input(7 downto 4))))(to_integer(unsigned(input(3 downto 0)))));
   end function invbytesub;
+
+
+--  function shiftrow (input : t_datatable2d) return t_datatable2d is
+--    variable v_datamatrix : t_datatable2d;
+--  begin
+--    v_datamatrix := input;
+--    return v_datamatrix;
+--  end function shiftrow;
 
 
 end package body aes_pkg;
