@@ -82,7 +82,11 @@ package aes_pkg is
 
   function shiftrow (input : t_datatable2d) return t_datatable2d;
   
+--  function mixcolumns (input : t_datatable2d) return t_datatable2d;
+
   function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
+
+  function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector;
 
 
 end package aes_pkg;
@@ -132,6 +136,28 @@ package body aes_pkg is
     -- return manipulated internal matrix
     return v_datamatrix;
   end function shiftrow;
+
+
+  function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector is
+    variable v_a, v_b     : std_logic_vector(7 downto 0);
+    variable v_data       : std_logic_vector(7 downto 0) := (others => '0');
+    variable v_hi_bit_set : std_logic := '0';
+  begin
+    v_a := a;
+    v_b := b;
+    for index in 0 to 7 loop
+      if(b(0) = '1') then
+        v_data := v_data xor a;
+      end if;
+      v_hi_bit_set := a(7);
+      v_a          := v_a(6 downto 0) & '0';
+      if(v_hi_bit_set = '1') then
+	v_a := v_a xor x"01";
+      end if;
+      v_b := '0' & v_b(7 downto 1);
+    end loop;
+    return v_data;
+  end function gmul;
 
 
 end package body aes_pkg;
