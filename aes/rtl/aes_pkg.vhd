@@ -32,10 +32,13 @@ use ieee.numeric_std.all;
 package aes_pkg is
 
 
-  type t_table  is array (0 to 15) of std_logic_vector(7 downto 0);
-  type t_stable is array (0 to 15) of t_table;
+  type t_datatable1d is array (0 to 3) of std_logic_vector(7 downto 0);
+  type t_datatable2d is array (0 to 3) of t_datatable1d;
 
-  constant c_sbox : t_stable := (
+  type t_stable1d is array (0 to 15) of std_logic_vector(7 downto 0);
+  type t_stable2d is array (0 to 15) of t_stable1d;
+
+  constant c_sbox : t_stable2d := (
     -- 0     1      2      3      4      5      6      7      8      9      A      B      C      D      E      F
     (x"63", x"7c", x"77", x"7b", x"f2", x"6b", x"6f", x"c5", x"30", x"01", x"67", x"2b", x"fe", x"d7", x"ab", x"76"), -- 0
     (x"ca", x"82", x"c9", x"7d", x"fa", x"59", x"47", x"f0", x"ad", x"d4", x"a2", x"af", x"9c", x"a4", x"72", x"c0"), -- 1
@@ -54,7 +57,7 @@ package aes_pkg is
     (x"e1", x"f8", x"98", x"11", x"69", x"d9", x"8e", x"94", x"9b", x"1e", x"87", x"e9", x"ce", x"55", x"28", x"df"), -- E
     (x"8c", x"a1", x"89", x"0d", x"bf", x"e6", x"42", x"68", x"41", x"99", x"2d", x"0f", x"b0", x"54", x"bb", x"16")); -- F
  
-  constant c_sbox_invers : t_stable := (
+  constant c_sbox_invers : t_stable2d := (
     -- 0     1      2      3      4      5      6      7      8      9      A      B      C      D      E      F
     (x"52", x"09", x"6a", x"d5", x"30", x"36", x"a5", x"38", x"bf", x"40", x"a3", x"9e", x"81", x"f3", x"d7", x"fb"), -- 0
     (x"7c", x"e3", x"39", x"82", x"9b", x"2f", x"ff", x"87", x"34", x"8e", x"43", x"44", x"c4", x"de", x"e9", x"cb"), -- 1 
@@ -77,6 +80,8 @@ package aes_pkg is
   function bytesub    (input : std_logic_vector(7 downto 0)) return std_logic_vector;
   function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector;
 
+  function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
+
 
 end package aes_pkg;
 
@@ -84,10 +89,23 @@ end package aes_pkg;
 package body aes_pkg is
 
 
+  function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d is
+    variable v_datamatrix : t_datatable2d;
+  begin
+    for outdex in 0 to 3 loop
+      for index in 0 to 3 loop
+        v_datamatrix(outdex)(index) := input(outdex*32+(index+1)*7 downto outdex*32+index*8);
+      end loop;
+    end loop;
+    return v_datamatrix;
+  end function sortdata;
+
+
   function bytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector is
   begin
     return(c_sbox(to_integer(unsigned(input(7 downto 4))))(to_integer(unsigned(input(3 downto 0)))));
   end function bytesub;
+
 
   function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector is
   begin
