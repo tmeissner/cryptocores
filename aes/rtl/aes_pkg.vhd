@@ -80,7 +80,8 @@ package aes_pkg is
   function bytesub    (input : std_logic_vector(7 downto 0)) return std_logic_vector;
   function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector;
 
-  function shiftrow (input : t_datatable2d) return t_datatable2d;
+  function shiftrow    (input : t_datatable2d) return t_datatable2d;
+  function invshiftrow (input : t_datatable2d) return t_datatable2d;
   
 --  function mixcolumns (input : t_datatable2d) return t_datatable2d;
 
@@ -138,6 +139,27 @@ package body aes_pkg is
   end function shiftrow;
 
 
+  function invshiftrow (input : t_datatable2d) return t_datatable2d is
+    variable v_datamatrix : t_datatable2d;
+  begin
+    -- copy input in internal matrix
+    v_datamatrix := input;
+    -- 2nd row
+    v_datamatrix(1)(0) := input(1)(1);
+    v_datamatrix(1)(1) := input(1)(2);
+    v_datamatrix(1)(2) := input(1)(3);
+    -- 3rd row
+    v_datamatrix(2)(0) := input(2)(2);
+    v_datamatrix(2)(1) := input(2)(3);
+    -- 4rd row
+    v_datamatrix(3)(0) := input(3)(3);
+    -- return manipulated internal matrix
+    return v_datamatrix;
+  end function invshiftrow;
+
+
+  -- trivial algorithmus to multiply two bytes in the 8 bit galois field
+  -- algorithmus in c taken from http://www.samiam.org/galois.html and rewritten in vhdl
   function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector is
     variable v_a, v_b     : std_logic_vector(7 downto 0);
     variable v_data       : std_logic_vector(7 downto 0) := (others => '0');
