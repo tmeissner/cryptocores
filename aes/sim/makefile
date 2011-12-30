@@ -33,7 +33,7 @@ tb_aes.ghw : ../rtl/*.vhd tb_aes.vhd
 	ghdl -r tb_aes --wave=tb_aes.ghw --assert-level=error --stop-time=10us
 	
 wave : tb_aes.ghw
-	gtkwave tb_aes.ghw
+	gtkwave -T tb_aes.tcl tb_aes.ghw
 	
 clean :
 	echo "# cleaning simulation files"
