@@ -19,15 +19,29 @@
 # ======================================================================
 
 
-# Revision 0.1  2011/10/22
-# Initial release
+# enable the compile of the OVL library
+# if set to 1, you must have the OVL_SRC files in the OVL_LOC directory
+OVL_ENABLE = 0
 
+# the location and sources of the OVL library (copyright of Accellera)
+# OVL is not included in this project, you can download it from
+# the Accellera homepage: http://www.accellera.org/downloads/standards/ovl/
+OVL_LOC    = ../../../../OVL/
+ifeq ($(OVL_ENABLE), 1)
+  OVL_SRC    = $(OVL_LOC)/std_ovl.vhd $(OVL_LOC)/std_ovl_components.vhd \
+               $(OVL_LOC)/std_ovl_procs.vhd $(OVL_LOC)/std_ovl_clock_gating.vhd \
+               $(OVL_LOC)/std_ovl_reset_gating.vhd $(OVL_LOC)/ovl_*.vhd \
+               $(OVL_LOC)/vhdl93/ovl_*_rtl.vhd
+else
+  OVL_SRC =
+endif
 
 all : sim wave
 
 sim : tb_aes.ghw
 
-tb_aes.ghw : ../rtl/*.vhd tb_aes.vhd
+tb_aes.ghw : ../rtl/*.vhd tb_aes.vhd $(OVL_SRC)
+	ghdl -a $(OVL_SRC)
 	ghdl -a ../rtl/aes_pkg.vhd ../rtl/aes.vhd tb_aes.vhd
 	ghdl -e tb_aes
 	ghdl -r tb_aes --wave=tb_aes.ghw --assert-level=error --stop-time=10us
