@@ -19,12 +19,6 @@
 -- ======================================================================
 
 
--- Revision 1.0  2007/02/04
--- Initial release
--- Revision 1.1  2007/02/05
--- Corrected error in use of mode register for key calculation
-
-
 LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.ALL;
