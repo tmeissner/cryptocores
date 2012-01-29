@@ -107,7 +107,7 @@ package aes_pkg is
   function shiftrow    (input : t_datatable2d) return t_datatable2d;
   function invshiftrow (input : t_datatable2d) return t_datatable2d;
   
---  function mixcolumns (input : t_datatable2d) return t_datatable2d;
+  function mixcolumns (input : t_datatable2d) return t_datatable2d;
 
   function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
 
@@ -204,6 +204,18 @@ package body aes_pkg is
     end loop;
     return v_data;
   end function gmul;
+
+
+  -- matrix columns manipulation
+  -- 02 03 01 01
+  -- 01 02 03 01
+  -- 01 01 02 03
+  -- 03 01 01 02
+  function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d is
+    variable v_data : t_datatable2d;
+  begin
+    
+  end function mixcolumns;
 
 
 end package body aes_pkg;
