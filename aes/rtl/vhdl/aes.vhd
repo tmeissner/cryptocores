@@ -19,17 +19,17 @@
 -- ======================================================================
 
 
--- Revision 0.1  2011/10/22
--- Initial release
-
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 use work.aes_pkg.all;
 
 
 entity aes is
+  generic (
+    ovl_enable  : in  boolean
+  );
   port (
     reset_i     : in  std_logic;                   -- async reset
     clk_i       : in  std_logic;                   -- clock

@@ -23,8 +23,37 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library accellera_ovl_vhdl;
+use accellera_ovl_vhdl.std_ovl.all;
+use accellera_ovl_vhdl.std_ovl_procs.all;
 
 package aes_pkg is
+
+
+  -- OVL configuration
+  constant ovl_proj_controls : ovl_ctrl_record := (
+    -- generate statement controls
+    xcheck_ctrl          => OVL_ON, 
+    implicit_xcheck_ctrl => OVL_ON, 
+    init_msg_ctrl        => OVL_ON,
+    init_count_ctrl      => OVL_ON,
+    assert_ctrl          => OVL_ON,
+    cover_ctrl           => OVL_ON,
+    global_reset_ctrl    => OVL_ON,
+    finish_ctrl          => OVL_ON,
+    gating_ctrl          => OVL_ON,
+    -- user configurable library constants
+    max_report_error       => 4,
+    max_report_cover_point => 15,
+    runtime_after_fatal    => "150 ns    ",
+    -- default values for common generics
+    severity_level_default => OVL_SEVERITY_DEFAULT,
+    property_type_default  => OVL_PROPERTY_DEFAULT,
+    msg_default            => ovl_set_msg(""),  -- OVL_MSG_DEFAULT
+    coverage_level_default => OVL_COVER_DEFAULT,
+    clock_edge_default     => OVL_CLOCK_EDGE_DEFAULT,
+    reset_polarity_default => OVL_RESET_POLARITY_DEFAULT,
+    gating_type_default    => OVL_GATING_TYPE_DEFAULT);
 
 
   type t_datatable1d is array (0 to 3) of std_logic_vector(7 downto 0);
@@ -78,7 +107,7 @@ package aes_pkg is
   function shiftrow    (input : t_datatable2d) return t_datatable2d;
   function invshiftrow (input : t_datatable2d) return t_datatable2d;
   
-  function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d;
+  function mixcolumns (input : t_datatable2d) return t_datatable2d;
 
   function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
 
@@ -185,6 +214,7 @@ package body aes_pkg is
   function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d is
     variable v_data : t_datatable2d;
   begin
+    
   end function mixcolumns;
 
 
