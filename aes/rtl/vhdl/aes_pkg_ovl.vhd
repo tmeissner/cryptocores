@@ -107,7 +107,7 @@ package aes_pkg is
   function shiftrow    (input : t_datatable2d) return t_datatable2d;
   function invshiftrow (input : t_datatable2d) return t_datatable2d;
   
-  function mixcolumns (input : t_datatable2d) return t_datatable2d;
+  function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d;
 
   function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
 
