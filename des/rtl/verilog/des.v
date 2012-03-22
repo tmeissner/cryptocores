@@ -33,7 +33,7 @@ module des
   );
 
 
-´include des_pkg.v
+`include "des_pkg.v"
 
 
 
