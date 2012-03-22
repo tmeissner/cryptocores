@@ -132,3 +132,61 @@ begin
 end
 endfunction
 
+
+function [0:31] p (input [0:31] data);
+begin
+  p = {data[15], data[ 6], data[19], data[20],
+       data[28], data[11], data[27], data[16],
+       data[ 0], data[14], data[22], data[25],
+       data[ 4], data[17], data[30], data[ 9],
+       data[ 1], data[ 7], data[23], data[13],
+       data[31], data[26], data[ 2], data[ 8],
+       data[18], data[12], data[29], data[ 5],
+       data[21], data[10], data[ 3], data[24]};
+end
+endfunction
+
+
+function [0:31] f (input [0:31] data, input [0:47] key);
+  reg [0:47] intern;
+begin
+  intern = e(data) ^ key;
+  f      = p({s1(intern[0:5]), s2(intern[6:11]), s3(intern[12:17]), s4(intern[18:23]),
+              s5(intern[24:29]), s6(intern[30:35]), s7(intern[36:41]), s8(intern[42:47])});
+end
+endfunction
+
+
+function [0:27] pc1_c (input [0:63] data);
+begin
+  pc1_c = {data[56], data[48], data[40], data[32], data[24], data[16], data[ 8],
+           data[ 0], data[57], data[49], data[41], data[33], data[25], data[17],
+           data[ 9], data[ 1], data[58], data[50], data[42], data[34], data[26],
+           data[18], data[10], data[ 2], data[59], data[51], data[43], data[35]};
+end
+endfunction
+
+
+function [0:27] pc1_d (input [0:63] data);
+begin
+  pc1_d = {data[62], data[54], data[46], data[38], data[30], data[22], data[14],
+           data[ 6], data[61], data[53], data[45], data[37], data[29], data[21],
+           data[13], data[ 5], data[60], data[52], data[44], data[36], data[28],
+           data[20], data[12], data[ 4], data[27], data[19], data[11], data[ 3]};
+end
+endfunction
+
+
+function [0:47] pc2 (input [0:55] data);
+begin
+  pc2 = {data[13], data[16], data[10], data[23], data[ 0], data[ 4],
+         data[ 2], data[27], data[14], data[ 5], data[20], data[ 9],
+         data[22], data[18], data[11], data[ 3], data[25], data[ 7],
+         data[15], data[ 6], data[26], data[19], data[12], data[ 1],
+         data[40], data[51], data[30], data[36], data[46], data[54],
+         data[29], data[39], data[50], data[44], data[32], data[47],
+         data[43], data[48], data[38], data[55], data[33], data[52],
+         data[45], data[41], data[49], data[35], data[28], data[31]};
+end
+endfunction
+
