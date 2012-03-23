@@ -35,6 +35,26 @@ module des
 
 `include "des_pkg.v"
 
+  reg [0:17] valid;
+  reg [0:16] mode;
+
+
+  wire valid_o = valid[17];
+
+  always @(posedge clk_i, negedge reset_i) begin
+    if(~reset_i) begin
+      valid <= 0;
+    end
+    else begin
+      // shift registers
+      valid[1:17] <= valid[0:16];
+      valid[0]    <= valid_i;
+      mode[1:16]  <= mode[0:15];
+      mode[0]     <= mode_i;
+    end
+  end
+
+
 
 
 endmodule
