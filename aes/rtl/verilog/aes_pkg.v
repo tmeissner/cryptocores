@@ -1,67 +1,33 @@
--- ======================================================================
--- AES encryption/decryption
--- package file with functions
--- Copyright (C) 2011 Torsten Meissner
--------------------------------------------------------------------------
--- This program is free software; you can redistribute it and/or modify
--- it under the terms of the GNU General Public License as published by
--- the Free Software Foundation; either version 2 of the License, or
--- (at your option) any later version.
-
--- This program is distributed in the hope that it will be useful,
--- but WITHOUT ANY WARRANTY; without even the implied warranty of
--- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--- GNU General Public License for more details.
-
--- You should have received a copy of the GNU General Public License
--- along with this program; if not, write to the Free Software
--- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
--- ======================================================================
-
-
-library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
-
-library accellera_ovl_vhdl;
-use accellera_ovl_vhdl.std_ovl.all;
-use accellera_ovl_vhdl.std_ovl_procs.all;
-
-package aes_pkg is
+// ======================================================================
+// AES encryption/decryption
+// package file with functions
+// Copyright (C) 2011 Torsten Meissner
+//-----------------------------------------------------------------------
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 2 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+// ======================================================================
 
 
-  -- OVL configuration
-  constant ovl_proj_controls : ovl_ctrl_record := (
-    -- generate statement controls
-    xcheck_ctrl          => OVL_ON, 
-    implicit_xcheck_ctrl => OVL_ON, 
-    init_msg_ctrl        => OVL_ON,
-    init_count_ctrl      => OVL_ON,
-    assert_ctrl          => OVL_ON,
-    cover_ctrl           => OVL_ON,
-    global_reset_ctrl    => OVL_ON,
-    finish_ctrl          => OVL_ON,
-    gating_ctrl          => OVL_ON,
-    -- user configurable library constants
-    max_report_error       => 4,
-    max_report_cover_point => 15,
-    runtime_after_fatal    => "150 ns    ",
-    -- default values for common generics
-    severity_level_default => OVL_SEVERITY_DEFAULT,
-    property_type_default  => OVL_PROPERTY_DEFAULT,
-    msg_default            => ovl_set_msg(""),  -- OVL_MSG_DEFAULT
-    coverage_level_default => OVL_COVER_DEFAULT,
-    clock_edge_default     => OVL_CLOCK_EDGE_DEFAULT,
-    reset_polarity_default => OVL_RESET_POLARITY_DEFAULT,
-    gating_type_default    => OVL_GATING_TYPE_DEFAULT);
-
-
-  type t_datatable1d is array (0 to 3) of std_logic_vector(7 downto 0);
-  type t_datatable2d is array (0 to 3) of t_datatable1d;
-
-  type t_stable1d is array (0 to 15) of std_logic_vector(7 downto 0);
-  type t_stable2d is array (0 to 15) of t_stable1d;
-
+//package aes_pkg is
+//
+//
+//  type t_datatable1d is array (0 to 3) of std_logic_vector(7 downto 0);
+//  type t_datatable2d is array (0 to 3) of t_datatable1d;
+//
+//  type t_stable1d is array (0 to 15) of std_logic_vector(7 downto 0);
+//  type t_stable2d is array (0 to 15) of t_stable1d;
+//
   constant c_sbox : t_stable2d := (
     -- 0     1      2      3      4      5      6      7      8      9      A      B      C      D      E      F
     (x"63", x"7c", x"77", x"7b", x"f2", x"6b", x"6f", x"c5", x"30", x"01", x"67", x"2b", x"fe", x"d7", x"ab", x"76"), -- 0
@@ -99,25 +65,25 @@ package aes_pkg is
     (x"60", x"51", x"7f", x"a9", x"19", x"b5", x"4a", x"0d", x"2d", x"e5", x"7a", x"9f", x"93", x"c9", x"9c", x"ef"), -- D 
     (x"a0", x"e0", x"3b", x"4d", x"ae", x"2a", x"f5", x"b0", x"c8", x"eb", x"bb", x"3c", x"83", x"53", x"99", x"61"), -- E 
     (x"17", x"2b", x"04", x"7e", x"ba", x"77", x"d6", x"26", x"e1", x"69", x"14", x"63", x"55", x"21", x"0c", x"7d"));-- F
-
-
-  function bytesub    (input : std_logic_vector(7 downto 0)) return std_logic_vector;
-  function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector;
-
-  function shiftrow    (input : t_datatable2d) return t_datatable2d;
-  function invshiftrow (input : t_datatable2d) return t_datatable2d;
-  
-  function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d;
-
-  function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
-
-  function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector;
-
-
-end package aes_pkg;
-
-
-package body aes_pkg is
+//
+//
+//  function bytesub    (input : std_logic_vector(7 downto 0)) return std_logic_vector;
+//  function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector;
+//
+//  function shiftrow    (input : t_datatable2d) return t_datatable2d;
+//  function invshiftrow (input : t_datatable2d) return t_datatable2d;
+//  
+//  function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d;
+//
+//  function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
+//
+//  function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector;
+//
+//
+//end package aes_pkg;
+//
+//
+//package body aes_pkg is
 
 
   function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d is
@@ -214,8 +180,5 @@ package body aes_pkg is
   function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d is
     variable v_data : t_datatable2d;
   begin
-    
   end function mixcolumns;
 
-
-end package body aes_pkg;

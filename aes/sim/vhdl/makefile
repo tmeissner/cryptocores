@@ -21,7 +21,7 @@
 
 # enable the compile of the OVL library
 # if set to 1, you must have the OVL_SRC files in the OVL_LOC directory
-OVL_ENABLE = 0
+OVL_ENABLE = 1
 
 # the location and sources of the OVL library (copyright of Accellera)
 # OVL is not included in this project, you can download it from
