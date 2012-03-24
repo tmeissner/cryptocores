@@ -33,7 +33,7 @@ module des
   );
 
 
-`include "des_pkg.v"
+`include "../../rtl/verilog/des_pkg.v"
 
   reg [0:17] valid;
   reg [0:16] mode;
@@ -53,8 +53,6 @@ module des
       mode[0]     <= mode_i;
     end
   end
-
-
 
 
 endmodule
