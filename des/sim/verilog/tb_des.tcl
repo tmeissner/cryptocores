@@ -7,4 +7,5 @@ lappend signals "tb_des.key"
 lappend signals "tb_des.datain"
 lappend signals "tb_des.validout"
 lappend signals "tb_des.dataout"
+lappend signals "tb_des.outdex"
 set num_added [ gtkwave::addSignalsFromList $signals ]
