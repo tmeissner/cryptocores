@@ -19,13 +19,19 @@
 // ======================================================================
 
 
-function [0:63] ip (input [0:63] data);
+function [0:31] ip0 (input [0:63] data);
 begin
-  ip = {data[57], data[49], data[41], data[33], data[25], data[17], data[ 9], data[1],
+  ip0 = {data[57], data[49], data[41], data[33], data[25], data[17], data[ 9], data[1],
         data[59], data[51], data[43], data[35], data[27], data[19], data[11], data[3],
         data[61], data[53], data[45], data[37], data[29], data[21], data[13], data[5],
-        data[63], data[55], data[47], data[39], data[31], data[23], data[15], data[7],
-        data[56], data[48], data[40], data[32], data[24], data[16], data[ 8], data[0],
+        data[63], data[55], data[47], data[39], data[31], data[23], data[15], data[7]};
+end
+endfunction
+
+
+function [0:61] ip1 (input [0:63] data);
+begin
+  ip1 = {data[56], data[48], data[40], data[32], data[24], data[16], data[ 8], data[0],
         data[58], data[50], data[42], data[34], data[26], data[18], data[10], data[2],
         data[60], data[52], data[44], data[36], data[28], data[20], data[12], data[4],
         data[62], data[54], data[46], data[38], data[30], data[22], data[14], data[6]};
