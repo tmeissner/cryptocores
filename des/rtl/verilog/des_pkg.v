@@ -29,7 +29,7 @@ end
 endfunction
 
 
-function [0:61] ip1 (input [0:63] data);
+function [0:31] ip1 (input [0:63] data);
 begin
   ip1 = {data[56], data[48], data[40], data[32], data[24], data[16], data[ 8], data[0],
         data[58], data[50], data[42], data[34], data[26], data[18], data[10], data[2],
@@ -69,72 +69,120 @@ endfunction
 
 function [0:3] s1 (input [0:5] data);
   reg [0:255] matrix;
+  integer pos;
+  integer index;
 begin
   matrix = 256'hE4D12FB83A6C5907_0F74E2D1A6CB9538_41E8D62BFC973A50_FC8249175B3EA06D;
-  s1 = matrix[{data[0],data[5]}*16 + data[1:4]];
+  pos = {data[0], data[5]} * 64 + data[1:4] * 4;
+  for(index = 0 ; index <= 3; index = index + 1)
+  begin
+    s1[index] = matrix[pos + index];
+  end
 end
 endfunction
 
 
 function [0:3] s2 (input [0:5] data);
   reg [0:255] matrix;
+  integer pos;
+  integer index;
 begin
-  matrix = 256'hF18E6B34972DC05A_3D47F28DC01A69B5_0E7BA4D158C6932F_D8A13F42B67C05E9;
-  s2 = matrix[{data[0],data[5]}*16 + data[1:4]];
+  matrix = 256'hF18E6B34972DC05A_3D47F28EC01A69B5_0E7BA4D158C6932F_D8A13F42B67C05E9;
+  pos = {data[0], data[5]} * 64 + data[1:4] * 4;
+  for(index = 0 ; index <= 3; index = index + 1)
+  begin
+    s2[index] = matrix[pos + index];
+  end
 end
 endfunction
 
 
 function [0:3] s3 (input [0:5] data);
   reg [0:255] matrix;
+  integer pos;
+  integer index;
 begin
   matrix = 256'hA09E63F51DC7B428_D709346A285ECBF1_D6498F30B12C5AE7_1AD069874FE3B52C;
-  s3 = matrix[{data[0],data[5]}*16 + data[1:4]];
+  pos = {data[0], data[5]} * 64 + data[1:4] * 4;
+  for(index = 0 ; index <= 3; index = index + 1)
+  begin
+    s3[index] = matrix[pos + index];
+  end
 end
 endfunction
 
 
 function [0:3] s4 (input [0:5] data);
   reg [0:255] matrix;
+  integer pos;
+  integer index;
 begin
   matrix = 256'h7DE3069A1285BC4F_D8B56F03472C1AE9_A690CB7DF13E5284_3F06A1D8945BC72E;
-  s4 = matrix[{data[0],data[5]}*16 + data[1:4]];
+  pos = {data[0], data[5]} * 64 + data[1:4] * 4;
+  for(index = 0 ; index <= 3; index = index + 1)
+  begin
+    s4[index] = matrix[pos + index];
+  end
 end
 endfunction
 
 
 function [0:3] s5 (input [0:5] data);
   reg [0:255] matrix;
+  integer pos;
+  integer index;
 begin
   matrix = 256'h2C417AB6853FD0E9_EB2C47D150FA3986_421BAD78F9C5630E_B8C71E2D6F09A453;
-  s5 = matrix[{data[0],data[5]}*16 + data[1:4]];
+  pos = {data[0], data[5]} * 64 + data[1:4] * 4;
+  for(index = 0 ; index <= 3; index = index + 1)
+  begin
+    s5[index] = matrix[pos + index];
+  end
 end
 endfunction
 
 
 function [0:3] s6 (input [0:5] data);
   reg [0:255] matrix;
+  integer pos;
+  integer index;
 begin
   matrix = 256'hC1AF92680D34E75B_AF427C9561DE0B38_9EF528C3704A1DB6_432C95FABE17608D;
-  s6 = matrix[{data[0],data[5]}*16 + data[1:4]];
+  pos = {data[0], data[5]} * 64 + data[1:4] * 4;
+  for(index = 0 ; index <= 3; index = index + 1)
+  begin
+    s6[index] = matrix[pos + index];
+  end
 end
 endfunction
 
 
 function [0:3] s7 (input [0:5] data);
   reg [0:255] matrix;
+  integer pos;
+  integer index;
 begin
   matrix = 256'h4B2EF08D3C975A61_D0B7491AE35C2F86_14BDC37EAF680592_6BD814A7950FE23C;
-  s7 = matrix[{data[0],data[5]}*16 + data[1:4]];
+  pos = {data[0], data[5]} * 64 + data[1:4] * 4;
+  for(index = 0 ; index <= 3; index = index + 1)
+  begin
+    s7[index] = matrix[pos + index];
+  end
 end
 endfunction
 
 
 function [0:3] s8 (input [0:5] data);
   reg [0:255] matrix;
+  integer pos;
+  integer index;
 begin
   matrix = 256'hD2846FB1A93E50C7_1FD8A374C56B0E92_7B419CE206ADF358_21E74A8DFC90356B;
-  s8 = matrix[{data[0],data[5]}*16 + data[1:4]];
+  pos = {data[0], data[5]} * 64 + data[1:4] * 4;
+  for(index = 0 ; index <= 3; index = index + 1)
+  begin
+    s8[index] = matrix[pos + index];
+  end
 end
 endfunction
 
