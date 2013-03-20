@@ -36,8 +36,8 @@ module des
 `include "../../rtl/verilog/des_pkg.v"
 
   // valid, mode register
-  reg [0:17] valid;
-  reg [0:16] mode;
+  reg [0:18] valid;
+  reg [0:17] mode;
 
   // algorithm pipeline register
   // key calculation register
@@ -76,23 +76,24 @@ module des
   reg [0:27] d15;
   reg [0:27] d16;
   // key register
-  reg [0:47] key1;
-  reg [0:47] key2;
-  reg [0:47] key3;
-  reg [0:47] key4;
-  reg [0:47] key5;
-  reg [0:47] key6;
-  reg [0:47] key7;
-  reg [0:47] key8;
-  reg [0:47] key9;
-  reg [0:47] key10;
-  reg [0:47] key11;
-  reg [0:47] key12;
-  reg [0:47] key13;
-  reg [0:47] key14;
-  reg [0:47] key15;
-  reg [0:47] key16;
+  wire [0:47] key1;
+  wire [0:47] key2;
+  wire [0:47] key3;
+  wire [0:47] key4;
+  wire [0:47] key5;
+  wire [0:47] key6;
+  wire [0:47] key7;
+  wire [0:47] key8;
+  wire [0:47] key9;
+  wire [0:47] key10;
+  wire [0:47] key11;
+  wire [0:47] key12;
+  wire [0:47] key13;
+  wire [0:47] key14;
+  wire [0:47] key15;
+  wire [0:47] key16;
   // register for left, right data blocks
+  reg [0:31] l;
   reg [0:31] l0;
   reg [0:31] l1;
   reg [0:31] l2;
@@ -110,6 +111,7 @@ module des
   reg [0:31] l14;
   reg [0:31] l15;
   reg [0:31] l16;
+  reg [0:31] r;
   reg [0:31] r0;
   reg [0:31] r1;
   reg [0:31] r2;
@@ -128,18 +130,19 @@ module des
   reg [0:31] r15;
   reg [0:31] r16;
 
-  wire valid_o = valid[17];
+  wire valid_o = valid[18];
 
   // valid, mode register
   always @(posedge clk_i, negedge reset_i) begin
     if(~reset_i) begin
       valid <= 0;
+      mode  <= 0;
     end
     else begin
       // shift registers
-      valid[1:17] <= valid[0:16];
+      valid[1:18] <= valid[0:17];
       valid[0]    <= valid_i;
-      mode[1:16]  <= mode[0:15];
+      mode[1:17]  <= mode[0:16];
       mode[0]     <= mode_i;
     end
   end
@@ -147,57 +150,9 @@ module des
   // des algorithm pipeline
   always @(posedge clk_i, negedge reset_i) begin
     if(~reset_i) begin
-      c0     <= 0;  
-      c1     <= 0;      
-      c2     <= 0;
-      c3     <= 0;
-      c4     <= 0;
-      c5     <= 0; 
-      c6     <= 0;
-      c7     <= 0;
-      c8     <= 0;
-      c9     <= 0;
-      c10    <= 0; 
-      c11    <= 0; 
-      c12    <= 0;
-      c13    <= 0;
-      c14    <= 0;
-      c15    <= 0;
-      c16    <= 0;
-      d0     <= 0; 
-      d1     <= 0; 
-      d2     <= 0;
-      d3     <= 0;
-      d4     <= 0;
-      d5     <= 0;
-      d6     <= 0;
-      d7     <= 0;
-      d8     <= 0;
-      d9     <= 0;
-      d10    <= 0; 
-      d11    <= 0;
-      d12    <= 0;
-      d13    <= 0;
-      d14    <= 0;
-      d15    <= 0;
-      d16    <= 0;
-      key1   <= 0; 
-      key2   <= 0;
-      key3   <= 0;
-      key4   <= 0;
-      key5   <= 0;
-      key6   <= 0;
-      key7   <= 0;
-      key8   <= 0;
-      key9   <= 0;
-      key10  <= 0; 
-      key11  <= 0;
-      key12  <= 0;
-      key13  <= 0;
-      key14  <= 0;
-      key15  <= 0;
-      key16  <= 0;
-      l0     <= 0; 
+      l      <= 0;
+      r      <= 0;
+      l0     <= 0;
       l1     <= 0;
       l2     <= 0;
       l3     <= 0;
@@ -208,13 +163,13 @@ module des
       l8     <= 0;
       l9     <= 0;
       l10    <= 0;
-      l11    <= 0; 
+      l11    <= 0;
       l12    <= 0;
       l13    <= 0;
       l14    <= 0;
       l15    <= 0;
       l16    <= 0;
-      r0     <= 0; 
+      r0     <= 0;
       r1     <= 0;
       r2     <= 0;
       r3     <= 0;
@@ -224,221 +179,285 @@ module des
       r7     <= 0;
       r8     <= 0;
       r9     <= 0;
-      r10    <= 0; 
+      r10    <= 0;
       r11    <= 0;
       r12    <= 0;
       r13    <= 0;
       r14    <= 0;
       r15    <= 0;
-      r16    <= 0; 
+      r16    <= 0;
       data_o <= 0;
     end
     else begin
       // output stage
-      data_o = ipn({r16, l16});
+      data_o <= ipn({r16, l16});
       // 16. stage
-      if (mode[16] == 1'b0) begin
-        c16 = {c15[1:27], c15[0]};
-        d16 = {d15[1:27], d15[0]};
-      end
-      else begin
-        c16 = {c15[27], c15[0:26]};
-        d16 = {d15[27], d15[0:26]};
-      end
-      key16  = pc2({c16, d16});
-      l16    = r15;
-      r16    = l15 ^ (f(r15, key16));
+      l16   <= r15;
+      r16   <= l15 ^ (f(r15, key16));
       // 15. stage
-      if (mode[15] == 1'b0) begin
-        c15 = {c14[2:27], c14[0:1]};
-        d15 = {d14[2:27], d14[0:1]};
-      end
-      else begin
-        c15 = {c14[26:27], c14[0:25]};
-        d15 = {d14[26:27], d14[0:25]};
-      end
-      key15 = pc2({c15, d15});
-      l15   = r14;
-      r15   = l14 ^ (f(r14, key15));
+      l15   <= r14;
+      r15   <= l14 ^ (f(r14, key15));
       // 14. stage
-      if (mode[14] == 1'b0) begin
-        c14 = {c13[2:27], c13[0:1]};
-        d14 = {d13[2:27], d13[0:1]};
-      end
-      else begin
-        c14 = {c13[26:27], c13[0:25]};
-        d14 = {d13[26:27], d13[0:25]};
-      end
-      key14 = pc2({c14, d14});
-      l14   = r13;
-      r14   = l13 ^ (f(r13, key14));
+      l14   <= r13;
+      r14   <= l13 ^ (f(r13, key14));
       // 13. stage
-      if (mode[13] == 1'b0) begin
-        c13 = {c12[2:27], c12[0:1]};
-        d13 = {d12[2:27], d12[0:1]};
-      end
-      else begin
-        c13 = {c12[26:27], c12[0:25]};
-        d13 = {d12[26:27], d12[0:25]};
-      end
-      key13 = pc2({c13, d13});
-      l13   = r12;
-      r13   = l12 ^ (f(r12, key13));
+      l13   <= r12;
+      r13   <= l12 ^ (f(r12, key13));
       // 12. stage
-      if (mode[12] == 1'b0) begin
-        c12 = {c11[2:27], c11[0:1]};
-        d12 = {d11[2:27], d11[0:1]};
-      end
-      else begin
-        c12 = {c11[26:27], c11[0:25]};
-        d12 = {d11[26:27], d11[0:25]};
-      end
-      key12 = pc2({c12, d12});
-      l12   = r11;
-      r12   = l11 ^ (f(r11, key12));
+      l12   <= r11;
+      r12   <= l11 ^ (f(r11, key12));
       // 11. stage
-      if (mode[11] == 1'b0) begin
-        c11 = {c10[2:27], c10[0:1]};
-        d11 = {d10[2:27], d10[0:1]};
-      end
-      else begin
-        c11 = {c10[26:27], c10[0:25]};
-        d11 = {d10[26:27], d10[0:25]};
-      end
-      key11 = pc2({c11, d11});
-      l11   = r10;
-      r11   = l10 ^ (f(r10, key11));
+      l11   <= r10;
+      r11   <= l10 ^ (f(r10, key11));
       // 10. stage
-      if (mode[10] == 1'b0) begin
-        c10 = {c9[2:27], c9[0:1]};
-        d10 = {d9[2:27], d9[0:1]};
-      end
-      else begin
-        c10 = {c9[26:27], c9[0:25]};
-        d10 = {d9[26:27], d9[0:25]};
-      end
-      key10 = pc2({c10, d10});
-      l10   = r9;
-      r10   = l9 ^ (f(r9, key10));
+      l10   <= r9;
+      r10   <= l9 ^ (f(r9, key10));
       // 9. stage
-      if (mode[9] == 1'b0) begin
-        c9 = {c8[1:27], c8[0]};
-        d9 = {d8[1:27], d8[0]};
-      end
-      else begin
-        c9 = {c8[27], c8[0:26]};
-        d9 = {d8[27], d8[0:26]};
-      end
-      key9 = pc2({c9, d9});
-      l9   = r8;
-      r9   = l8 ^ (f(r8, key9));
+      l9   <= r8;
+      r9   <= l8 ^ (f(r8, key9));
       // 8. stage
-      if (mode[8] == 1'b0) begin
-        c8 = {c7[2:27], c7[0:1]};
-        d8 = {d7[2:27], d7[0:1]};
-      end
-      else begin
-        c8 = {c7[26:27], c7[0:25]};
-        d8 = {d7[26:27], d7[0:25]};
-      end
-      key8 = pc2({c8, d8});
-      l8   = r7;
-      r8   = l7 ^ (f(r7, key8));
+      l8   <= r7;
+      r8   <= l7 ^ (f(r7, key8));
       // 7. stage
-      if (mode[7] == 1'b0) begin
-        c7 = {c6[2:27], c6[0:1]};
-        d7 = {d6[2:27], d6[0:1]};
-      end
-      else begin
-        c7 = {c6[26:27], c6[0:25]};
-        d7 = {d6[26:27], d6[0:25]};
-      end
-      key7 = pc2({c7, d7});
-      l7   = r6;
-      r7   = l6 ^ (f(r6, key7));
+      l7   <= r6;
+      r7   <= l6 ^ (f(r6, key7));
       // 6. stage
-      if (mode[6] == 1'b0) begin
-        c6 = {c5[2:27], c5[0:1]};
-        d6 = {d5[2:27], d5[0:1]};
-      end
-      else begin
-        c6 = {c5[26:27], c5[0:25]};
-        d6 = {d5[26:27], d5[0:25]};
-      end
-      key6 = pc2({c6, d6});
-      l6   = r5;
-      r6   = l5 ^ (f(r5, key6));
+      l6   <= r5;
+      r6   <= l5 ^ (f(r5, key6));
       // 5. stage
-      if (mode[5] == 1'b0) begin
-        c5 = {c4[2:27], c4[0:1]};
-        d5 = {d4[2:27], d4[0:1]};
-      end
-      else begin
-        c5 = {c4[26:27], c4[0:25]};
-        d5 = {d4[26:27], d4[0:25]};
-      end
-      key5 = pc2({c5, d5});
-      l5   = r4;
-      r5   = l4 ^ (f(r4, key5));
+      l5   <= r4;
+      r5   <= l4 ^ (f(r4, key5));
       // 4. stage
-      if (mode[4] == 1'b0) begin
-        c4 = {c3[2:27], c3[0:1]};
-        d4 = {d3[2:27], d3[0:1]};
-      end
-      else begin
-        c4 = {c3[26:27], c3[0:25]};
-        d4 = {d3[26:27], d3[0:25]};
-      end
-      key4 = pc2({c4, d4});
-      l4   = r3;
-      r4   = l3 ^ (f(r3, key4));
+      l4   <= r3;
+      r4   <= l3 ^ (f(r3, key4));
       // 3. stage
-      if (mode[3] == 1'b0) begin
-        c3 = {c2[2:27], c2[0:1]};
-        d3 = {d2[2:27], d2[0:1]};
-      end
-      else begin
-        c3 = {c2[26:27], c2[0:25]};
-        d3 = {d2[26:27], d2[0:25]};
-      end
-      key3 = pc2({c3, d3});
-      l3   = r2;
-      r3   = l2 ^ (f(r2, key3));
+      l3   <= r2;
+      r3   <= l2 ^ (f(r2, key3));
       // 2. stage
-      if (mode[2] == 1'b0) begin
-        c2 = {c1[1:27], c1[0]};
-        d2 = {d1[1:27], d1[0]};
-      end
-      else begin
-        c2 = {c1[27], c1[0:26]};
-        d2 = {d1[27], d1[0:26]};
-      end
-      key2 = pc2({c2, d2});
-      l2   = r1;
-      r2   = l1 ^ (f(r1, key2));
+      l2   <= r1;
+      r2   <= l1 ^ (f(r1, key2));
       // 1. stage
-      if (mode[1] == 1'b0) begin
-        c1 = {c0[1:27], c0[0]};
-        d1 = {d0[1:27], d0[0]};
+      l1   <= r0;
+      r1   <= l0 ^ (f(r0, key1));
+      // 1. state
+      l0   <= l;
+      r0   <= r;
+      // input stage
+      l   <= ip0(data_i);
+      r   <= ip1(data_i);
+    end
+  end
+
+  // des key pipeline
+  always @(posedge clk_i, negedge reset_i) begin
+    if(~reset_i) begin
+      c0     <= 0;
+      c1     <= 0;
+      c2     <= 0;
+      c3     <= 0;
+      c4     <= 0;
+      c5     <= 0;
+      c6     <= 0;
+      c7     <= 0;
+      c8     <= 0;
+      c9     <= 0;
+      c10    <= 0;
+      c11    <= 0;
+      c12    <= 0;
+      c13    <= 0;
+      c14    <= 0;
+      c15    <= 0;
+      c16    <= 0;
+      d0     <= 0;
+      d1     <= 0;
+      d2     <= 0;
+      d3     <= 0;
+      d4     <= 0;
+      d5     <= 0;
+      d6     <= 0;
+      d7     <= 0;
+      d8     <= 0;
+      d9     <= 0;
+      d10    <= 0;
+      d11    <= 0;
+      d12    <= 0;
+      d13    <= 0;
+      d14    <= 0;
+      d15    <= 0;
+      d16    <= 0;
+    end
+    else begin
+      // input stage
+      c0 <= pc1_c(key_i);
+      d0 <= pc1_d(key_i);
+      // 1st stage
+      if (~mode[0]) begin
+        c1 <= {c0[1:27], c0[0]};
+        d1 <= {c0[1:27], c0[0]};
       end
       else begin
-        c1 = c0;
-        d1 = d0;
+        c1 <= c0;
+        d1 <= d0;
       end
-      key1 = pc2({c1, d1});
-      l1   = r0;
-      r1   = l0 ^ (f(r0, key1));
-      // input stage
-      l0 = ip0(data_i);
-      r0 = ip0(data_i);
-      c0 = pc1_c(key_i);
-      d0 = pc1_d(key_i);
-    end        
-  end          
-               
-               
-endmodule      
-               
-               
-               
-               
+      // 2nd stage
+      if (~mode[1]) begin
+        c2 <= {c1[1:27], c1[0]};
+        d2 <= {d1[1:27], d1[0]};
+      end
+      else begin
+        c2 <= {c1[27], c1[0:26]};
+        d2 <= {d1[27], d1[0:26]};
+      end
+      // 3rd stage
+      if (~mode[2]) begin
+        c3 <= {c2[2:27], c2[0:1]};
+        d3 <= {d2[2:27], d2[0:1]};
+      end
+      else begin
+        c3 <= {c2[26:27], c2[0:25]};
+        d3 <= {d2[26:27], d2[0:25]};
+      end
+      // 4th stage
+      if (~mode[3]) begin
+        c4 <= {c3[2:27], c3[0:1]};
+        d4 <= {d3[2:27], d3[0:1]};
+      end
+      else begin
+        c4 <= {c3[26:27], c3[0:25]};
+        d4 <= {d3[26:27], d3[0:25]};
+      end
+      // 5th stage
+      if (~mode[4]) begin
+        c5 <= {c4[2:27], c4[0:1]};
+        d5 <= {d4[2:27], d4[0:1]};
+      end
+      else begin
+        c5 <= {c4[26:27], c4[0:25]};
+        d5 <= {d4[26:27], d4[0:25]};
+      end
+      // 6. stage
+      if (~mode[5]) begin
+        c6 <= {c5[2:27], c5[0:1]};
+        d6 <= {d5[2:27], d5[0:1]};
+      end
+      else begin
+        c6 <= {c5[26:27], c5[0:25]};
+        d6 <= {d5[26:27], d5[0:25]};
+      end
+      // 7. stage
+      if (~mode[6]) begin
+        c7 <= {c6[2:27], c6[0:1]};
+        d7 <= {d6[2:27], d6[0:1]};
+      end
+      else begin
+        c7 <= {c6[26:27], c6[0:25]};
+        d7 <= {d6[26:27], d6[0:25]};
+      end
+      // 8. stage
+      if (~mode[7]) begin
+        c8 <= {c7[2:27], c7[0:1]};
+        d8 <= {d7[2:27], d7[0:1]};
+      end
+      else begin
+        c8 <= {c7[26:27], c7[0:25]};
+        d8 <= {d7[26:27], d7[0:25]};
+      end
+      // 9. stage
+      if (~mode[8]) begin
+        c9 <= {c8[2:27], c8[0:1]};
+        d9 <= {d8[2:27], d8[0:1]};
+      end
+      else begin
+        c9 <= {c8[26:27], c8[0:25]};
+        d9 <= {d8[26:27], d8[0:25]};
+      end
+      // 10. stage
+      if (~mode[9]) begin
+        c10 <= {c9[2:27], c9[0:1]};
+        d10 <= {d9[2:27], d9[0:1]};
+      end
+      else begin
+        c10 <= {c9[26:27], c9[0:25]};
+        d10 <= {d9[26:27], d9[0:25]};
+      end
+      // 6. stage
+      if (~mode[10]) begin
+        c11 <= {c10[2:27], c10[0:1]};
+        d11 <= {d10[2:27], d10[0:1]};
+      end
+      else begin
+        c11 <= {c10[26:27], c10[0:25]};
+        d11 <= {d10[26:27], d10[0:25]};
+      end
+      // 6. stage
+      if (~mode[11]) begin
+        c12 <= {c11[2:27], c11[0:1]};
+        d12 <= {d11[2:27], d11[0:1]};
+      end
+      else begin
+        c12 <= {c11[26:27], c11[0:25]};
+        d12 <= {d11[26:27], d11[0:25]};
+      end
+      // 6. stage
+      if (~mode[12]) begin
+        c13 <= {c12[2:27], c12[0:1]};
+        d13 <= {d12[2:27], d12[0:1]};
+      end
+      else begin
+        c13 <= {c12[26:27], c12[0:25]};
+        d13 <= {d12[26:27], d12[0:25]};
+      end
+      // 6. stage
+      if (~mode[13]) begin
+        c14 <= {c13[2:27], c13[0:1]};
+        d14 <= {d13[2:27], d13[0:1]};
+      end
+      else begin
+        c14 <= {c13[26:27], c13[0:25]};
+        d14 <= {d13[26:27], d13[0:25]};
+      end
+      // 6. stage
+      if (~mode[14]) begin
+        c15 <= {c14[2:27], c14[0:1]};
+        d15 <= {d14[2:27], d14[0:1]};
+      end
+      else begin
+        c15 <= {c14[26:27], c14[0:25]};
+        d15 <= {d14[26:27], d14[0:25]};
+      end
+      // 6. stage
+      if (~mode[15]) begin
+        c16 <= {c15[1:27], c15[0]};
+        d16 <= {d15[1:27], d15[0]};
+      end
+      else begin
+        c16 <= {c15[27], c15[0:26]};
+        d16 <= {d15[27], d15[0:26]};
+      end
+    end
+  end
+
+  // key assignments
+  assign key1 = pc2({c1, d1});
+  assign key2 = pc2({c2, d2});
+  assign key3 = pc2({c3, d3});
+  assign key4 = pc2({c4, d4});
+  assign key5 = pc2({c5, d5});
+  assign key6 = pc2({c6, d6});
+  assign key7 = pc2({c7, d7});
+  assign key8 = pc2({c8, d8});
+  assign key9 = pc2({c9, d9});
+  assign key10 = pc2({c10, d10});
+  assign key11 = pc2({c11, d11});
+  assign key12 = pc2({c12, d12});
+  assign key13 = pc2({c13, d13});
+  assign key14 = pc2({c14, d14});
+  assign key15 = pc2({c15, d15});
+  assign key16 = pc2({c16, d16});
+
+
+endmodule
+
+
+
+
