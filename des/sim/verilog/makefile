@@ -19,12 +19,16 @@
 # ======================================================================
 
 
+SRC_FILES = ../../rtl/verilog/*.v tb_des.v
+SIM_FILES = data_input.txt key_input.txt data_output.txt
+
+
 all : sim wave
 
 sim : tb_des.vcd
 
 
-tb_des.vcd : ../../rtl/verilog/*.v tb_des.v
+tb_des.vcd : $(SRC_FILES) $(SIM_FILES)
 	iverilog -Wall -s tb_des -o tb_des tb_des.v ../../rtl/verilog/des.v
 	vvp tb_des
 
