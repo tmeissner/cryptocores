@@ -21,7 +21,7 @@
 
 module tb_des;
 
-
+  // set dumpfile
   initial begin
      $dumpfile ("tb_des.vcd");
      $dumpvars (0, tb_des);
@@ -35,24 +35,33 @@ module tb_des;
   reg validin;
   integer index;
   integer outdex;
+  integer errors;
   wire [0:63] dataout;
   wire validout;
 
-  reg [0:63] variable_plaintext_known_answers [0:63];
+  reg [0:63] data_input  [0:127];
+  reg [0:63] key_input   [0:127];
+  reg [0:63] data_output [0:127];
 
+  // read in test data files
   initial begin
-    $readmemh("stimuli.txt", variable_plaintext_known_answers);
+    $readmemh("data_input.txt",  data_input);
+    $readmemh("key_input.txt",   key_input);
+    $readmemh("data_output.txt", data_output);
   end
 
+  // setup simulation
   initial begin
     reset = 1;
     #1  reset = 0;
     #20 reset = 1;
-    #1000 $finish;
+    #2000 $finish;
   end
 
+  // generate clock with 100 mhz
   always #5 clk = !clk;
 
+  // init the register values
   initial
     forever @(negedge reset) begin
       disable stimuli;
@@ -61,41 +70,52 @@ module tb_des;
       validin <= 0;
       key     <= 0;
       datain  <= 0;
+      errors  =  0;
     end
 
+   // stimuli generator process
   always begin : stimuli
     wait (reset)
     @(posedge clk)
       // Variable plaintext known answer test
-      datain <= 64'h8000000000000000;
-      mode    <= 0;
-      validin <= 1;
-      key     <= 64'h0101010101010101;
-      for(index = 0; index < 64; index = index + 1)
+      for(index = 0; index < 128; index = index + 1)
       begin
         @(posedge clk)
-          datain  <= {1'b0, datain[0:62]};
+          mode    <= 0;
+          validin <= 1;
+          datain  <= data_input[index];
+          key     <= key_input[index];
       end
       validin <= 0;
   end
 
+  // checker process
   always begin : checker
     wait (reset)
     // Variable plaintext known answer test
     wait (validout)
-    for(outdex = 0; outdex < 64; outdex = outdex + 1)
+    for(outdex = 0; outdex < 128; outdex = outdex + 1)
     begin
       @(posedge clk)
-      if (dataout == variable_plaintext_known_answers[outdex]) begin
-        $display ("okay");
-      end else begin
-        $display ("error, output was %h - should have been %h", dataout, variable_plaintext_known_answers[outdex]);
+      // detected an error -> print error message
+      if (dataout != data_output[outdex]) begin
+        $display ("error, output was %h - should have been %h", dataout, data_output[outdex]);
+        errors = errors + 1;
       end
     end
+    // simulation finished -> print messages and if an error was detected
+    $display   ("#############");
+    if (errors) begin
+      $display ("test finished, there were %0d errors detected :(", errors);
+    end else begin
+      $display ("test finished, no errors detected :)");
+    end
+    $display   ("#############");
     @(posedge clk)
       $finish;
   end
 
+  // dut
   des i_des (
     .reset_i(reset),
     .clk_i(clk),
