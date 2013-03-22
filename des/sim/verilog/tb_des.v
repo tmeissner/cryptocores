@@ -98,6 +98,7 @@ module tb_des;
     begin
       @(posedge clk)
       // detected an error -> print error message
+      // increent error counter
       if (dataout != data_output[outdex]) begin
         $display ("error, output was %h - should have been %h", dataout, data_output[outdex]);
         errors = errors + 1;
@@ -106,7 +107,7 @@ module tb_des;
     // simulation finished -> print messages and if an error was detected
     $display   ("#############");
     if (errors) begin
-      $display ("test finished, there were %0d errors detected :(", errors);
+      $display ("test finished, %0d errors detected :(", errors);
     end else begin
       $display ("test finished, no errors detected :)");
     end
