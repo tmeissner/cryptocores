@@ -295,7 +295,7 @@ module des
       // 1st stage
       if (~mode[0]) begin
         c1 <= {c0[1:27], c0[0]};
-        d1 <= {c0[1:27], c0[0]};
+        d1 <= {d0[1:27], d0[0]};
       end
       else begin
         c1 <= c0;
@@ -366,12 +366,12 @@ module des
       end
       // 9. stage
       if (~mode[8]) begin
-        c9 <= {c8[2:27], c8[0:1]};
-        d9 <= {d8[2:27], d8[0:1]};
+        c9 <= {c8[1:27], c8[0]};
+        d9 <= {d8[1:27], d8[0]};
       end
       else begin
-        c9 <= {c8[26:27], c8[0:25]};
-        d9 <= {d8[26:27], d8[0:25]};
+        c9 <= {c8[27], c8[0:26]};
+        d9 <= {d8[27], d8[0:26]};
       end
       // 10. stage
       if (~mode[9]) begin
@@ -440,15 +440,15 @@ module des
   end
 
   // key assignments
-  assign key1 = pc2({c1, d1});
-  assign key2 = pc2({c2, d2});
-  assign key3 = pc2({c3, d3});
-  assign key4 = pc2({c4, d4});
-  assign key5 = pc2({c5, d5});
-  assign key6 = pc2({c6, d6});
-  assign key7 = pc2({c7, d7});
-  assign key8 = pc2({c8, d8});
-  assign key9 = pc2({c9, d9});
+  assign key1  = pc2({c1, d1});
+  assign key2  = pc2({c2, d2});
+  assign key3  = pc2({c3, d3});
+  assign key4  = pc2({c4, d4});
+  assign key5  = pc2({c5, d5});
+  assign key6  = pc2({c6, d6});
+  assign key7  = pc2({c7, d7});
+  assign key8  = pc2({c8, d8});
+  assign key9  = pc2({c9, d9});
   assign key10 = pc2({c10, d10});
   assign key11 = pc2({c11, d11});
   assign key12 = pc2({c12, d12});
