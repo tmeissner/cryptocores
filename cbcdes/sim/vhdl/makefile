@@ -19,12 +19,15 @@
 # ======================================================================
 
 
+SRC_FILES = ../../rtl/vhdl/des_pkg.vhd ../../rtl/vhdl/des.vhd ../../rtl/vhdl/cbcdes.vhd
+
+
 all : sim wave
 
 sim : tb_cbcdes.ghw
 
-tb_cbcdes.ghw : ../rtl/*.vhd tb_cbcdes.vhd
-	ghdl -a ../rtl/des_pkg.vhd ../rtl/des.vhd ../rtl/cbcdes.vhd tb_cbcdes.vhd
+tb_cbcdes.ghw : $(SRC_FILES) tb_cbcdes.vhd
+	ghdl -a $(SRC_FILES) tb_cbcdes.vhd
 	ghdl -e tb_cbcdes
 	ghdl -r tb_cbcdes --wave=tb_cbcdes.ghw --assert-level=error --stop-time=220us
 	
