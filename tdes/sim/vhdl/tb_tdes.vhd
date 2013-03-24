@@ -170,7 +170,7 @@ begin
     valid_i  => s_validin, 
     data_o   => s_dataout,
     valid_o  => s_validout,
-    ready_o  => s_ready              
+    ready_o  => s_ready
   );
 
 
