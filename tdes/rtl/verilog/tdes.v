@@ -1,7 +1,7 @@
 // ======================================================================
 // TDES encryption/decryption
 // algorithm according:FIPS 46-3 specification
-// Copyright (C) 2012 Torsten Meissner
+// Copyright (C) 2013 Torsten Meissner
 //-----------------------------------------------------------------------
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,17 +28,14 @@ module tdes
     input             clk_i,    // clock
     input             mode_i,   // des-mode: 0 = encrypt, 1 = decrypt
     input      [0:63] key1_i,   // key input
-    input      [0:63] key2_i    // key input
-    input      [0:63] key3_i    // key input
+    input      [0:63] key2_i,   // key input
+    input      [0:63] key3_i,   // key input
     input      [0:63] data_i,   // data input
     input             valid_i,  // input key/data valid flag
-    output reg [0:63] data_o,   // data output
+    output     [0:63] data_o,   // data output
     output            valid_o,  // output data valid flag
     output reg        ready_o   // ready for new data
   );
-
-
-`include "../../rtl/verilog/des.v"
 
 
   reg reset;
@@ -46,8 +43,23 @@ module tdes
   reg [0:63] key1;
   reg [0:63] key2;
   reg [0:63] key3;
-  reg ready_o;
 
+  wire des2_mode;
+  wire des1_validin;
+  wire [0:63] des1_key;
+  wire [0:63] des3_key;
+
+  wire [0:63] des1_dataout;
+  wire [0:63] des2_dataout;
+  wire des1_validout;
+  wire des2_validout;
+
+
+  assign des2_mode = ~mode;
+  assign des1_validin = valid_i & ready_o;
+
+  assign des1_key = (~mode_i) ? key1_i : key3_i;
+  assign des3_key = (~mode)   ? key3   : key1;
 
 
   // input register
@@ -87,7 +99,7 @@ module tdes
   end
 
 
-  des : i1_des
+  des i1_des
   (
     .reset_i(reset_i),
     .clk_i(clk_i),
@@ -100,7 +112,7 @@ module tdes
   );
 
 
-  des : i2_des
+  des i2_des
   (
     .reset_i(reset_i),
     .clk_i(clk_i),
@@ -113,12 +125,12 @@ module tdes
   );
 
 
-  des : i3_des
+  des i3_des
   (
     .reset_i(reset_i),
     .clk_i(clk_i),
-    .mode_i(mode_i),
-    .key_i(des1_key),
+    .mode_i(mode),
+    .key_i(des3_key),
     .data_i(des2_dataout),
     .valid_i(des2_validout),
     .data_o(data_o),
