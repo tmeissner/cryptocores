@@ -24,17 +24,17 @@
 
 module cbcdes
   (
-    input         reset_i,  // async reset
-    input         clk_i,    // clock
-    input         start_i,  // start cbc
-    input         mode_i,   // des-mode: 0 = encrypt, 1 = decrypt
-    input  [0:63] key_i,    // key input
-    input  [0:63] iv_i,     // iv input
-    input  [0:63] data_i,   // data input
-    input         valid_i,  // input key/data valid flag
-    output reg    ready_o,  // ready to encrypt/decrypt
-    output reg [0:63] data_o,       // data output
-    output        valid_o   // output data valid flag
+    input             reset_i,  // async reset
+    input             clk_i,    // clock
+    input             start_i,  // start cbc
+    input             mode_i,   // des-mode: 0 = encrypt, 1 = decrypt
+    input  [0:63]     key_i,    // key input
+    input  [0:63]     iv_i,     // iv input
+    input  [0:63]     data_i,   // data input
+    input             valid_i,  // input key/data valid flag
+    output reg        ready_o,  // ready to encrypt/decrypt
+    output reg [0:63] data_o,   // data output
+    output            valid_o   // output data valid flag
   );
 
 
@@ -84,6 +84,7 @@ module cbcdes
       data_o = des_dataout;
     end
   end
+
 
   // input register
   always @(posedge clk_i, negedge reset_i) begin
