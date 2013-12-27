@@ -23,8 +23,8 @@ all : sim wave
 
 sim : tb_cbctdes.ghw
 
-tb_cbctdes.ghw : ../rtl/*.vhd tb_cbctdes.vhd
-	ghdl -a ../rtl/des_pkg.vhd ../rtl/des.vhd ../rtl/tdes.vhd ../rtl/cbctdes.vhd tb_cbctdes.vhd
+tb_cbctdes.ghw : ../../rtl/vhdl/*.vhd tb_cbctdes.vhd
+	ghdl -a ../../rtl/vhdl/des_pkg.vhd ../../rtl/vhdl/des.vhd ../../rtl/vhdl/tdes.vhd ../../rtl/vhdl/cbctdes.vhd tb_cbctdes.vhd 
 	ghdl -e tb_cbctdes
 	ghdl -r tb_cbctdes --wave=tb_cbctdes.ghw --assert-level=error --stop-time=45us
 	
