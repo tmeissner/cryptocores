@@ -44,9 +44,12 @@ module cbctdes
   wire        tdes_mode;
   reg         start;
   reg  [0:63] key;
-  wire [0:63] tdes_key1;
-  wire [0:63] tdes_key2;
-  wire [0:63] tdes_key3;
+  wire [0:63]  tdes_key1;
+  wire [0:63]  tdes_key2;
+  wire [0:63]  tdes_key3;
+  reg [0:63]  key1;
+  reg [0:63]  key2;
+  reg [0:63]  key3;
   reg  [0:63] iv;
   reg  [0:63] datain;
   reg  [0:63] datain_d;
@@ -55,9 +58,10 @@ module cbctdes
   wire [0:63] tdes_dataout;
   reg         reset;
   reg  [0:63] dataout;
+  wire        tdes_ready;
 
 
-    always @(*) begin
+  always @(*) begin
     if (~mode_i && start_i) begin
       tdes_datain = iv_i ^ data_i;
     end
@@ -83,16 +87,25 @@ module cbctdes
   end
 
 
+  assign tdes_key1 = start_i ? key1_i : key1;
+  assign tdes_key2 = start_i ? key2_i : key2;
+  assign tdes_key3 = start_i ? key3_i : key3;
+
+  assign validin = valid_i & ready_o;
+
+
   // input register
   always @(posedge clk_i, negedge reset_i) begin
     if (~reset_i) begin
-      reset    <= 0;
-      mode     <= 0;
-      start    <= 0;
-      key      <= 0;
-      iv       <= 0;
-      datain   <= 0;
-      datain_d <= 0;
+      reset     <= 0;
+      mode      <= 0;
+      start     <= 0;
+      key1 <= 0;
+      key2 <= 0;
+      key3 <= 0;
+      iv        <= 0;
+      datain    <= 0;
+      datain_d  <= 0;
     end
     else begin
       reset <= reset_i;
@@ -102,9 +115,11 @@ module cbctdes
         datain_d <= datain;
       end
       else if (valid_i && ready_o && start_i) begin
-        mode <= mode_i;
-        key  <= key_i;
-        iv   <= iv_i;
+        mode  <= mode_i;
+        key1  <= key1_i;
+        key2  <= key2_i;
+        key3  <= key3_i;
+        iv    <= iv_i;
       end
     end
   end
@@ -117,7 +132,7 @@ module cbctdes
       dataout <= 0;
     end
     else begin
-      if (valid_i && ready_o) begin
+      if (valid_i && ready_o && tdes_ready) begin
         ready_o <= 0;
       end
       else if (valid_o || (reset_i && ~reset)) begin
@@ -140,7 +155,7 @@ module cbctdes
     .valid_i(validin),
     .data_o(tdes_dataout),
     .valid_o(valid_o),
-    .ready_o(tdesready)
+    .ready_o(tdes_ready)
   );
 
 
