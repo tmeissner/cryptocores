@@ -116,6 +116,36 @@ PACKAGE des_pkg IS
                                     2 => ( 7, 11,  4,  1,  9, 12, 14,  2,  0,  6, 10, 13, 15,  3,  5,  8),
                                     3 => ( 2,  1, 14,  7,  4, 10,  8, 13, 15, 12,  9,  0,  3,  5,  6, 11));
 
+  type pc_matrix IS ARRAY (0 TO 27) OF natural RANGE 0 TO 63;
+  constant pc1c_table : pc_matrix := (56, 48, 40, 32, 24, 16,  8,
+                                 0, 57, 49, 41, 33, 25, 17,
+                                 9,  1, 58, 50, 42, 34, 26,
+                                18, 10,  2, 59, 51, 43, 35);
+  constant pc1d_table : pc_matrix := (62, 54, 46, 38, 30, 22, 14,
+                                 6, 61, 53, 45, 37, 29, 21,
+                                13,  5, 60, 52, 44, 36, 28,
+                                20, 12,  4, 27, 19, 11,  3);
+
+  type p_matrix IS ARRAY (0 TO 31) OF natural RANGE 0 TO 31;
+  constant p_table : p_matrix := (15,  6, 19, 20,
+                                28, 11, 27, 16,
+                                 0, 14, 22, 25,
+                                 4, 17, 30,  9,
+                                 1,  7, 23, 13,
+                                31, 26,  2,  8,
+                                18, 12, 29,  5,
+                                21, 10,  3, 24);
+
+  type pc2_matrix IS ARRAY (0 TO 47) OF natural RANGE 0 TO 63;
+  constant pc2_table : pc2_matrix := (13, 16, 10, 23,  0,  4,
+                                 2, 27, 14,  5, 20,  9,
+                                22, 18, 11,  3, 25,  7,
+                                15,  6, 26, 19, 12,  1,
+                                40, 51, 30, 36, 46, 54,
+                                29, 39, 50, 44, 32, 47,
+                                43, 48, 38, 55, 33, 52,
+                                45, 41, 49, 35, 28, 31);
+
 
 END PACKAGE des_pkg;
 
@@ -256,19 +286,10 @@ PACKAGE BODY des_pkg IS
   END FUNCTION s8;
 
   FUNCTION p (input_vector : std_logic_vector(0 TO 31) ) RETURN std_logic_vector IS
-    TYPE matrix IS ARRAY (0 TO 31) OF natural RANGE 0 TO 31;
-    VARIABLE table : matrix := (15,  6, 19, 20,
-                                28, 11, 27, 16,
-                                 0, 14, 22, 25,
-                                 4, 17, 30,  9,
-                                 1,  7, 23, 13,
-                                31, 26,  2,  8,
-                                18, 12, 29,  5,
-                                21, 10,  3, 24);
     VARIABLE result : std_logic_vector(0 TO 31);
   BEGIN
     FOR index IN 0 TO 31 LOOP
-      result( index ) := input_vector( table( index ) );
+      result( index ) := input_vector( p_table( index ) );
     END LOOP;
     RETURN result;
   END FUNCTION p;
@@ -284,47 +305,29 @@ PACKAGE BODY des_pkg IS
   END FUNCTION f;
 
   FUNCTION pc1_c ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector IS
-    TYPE matrix IS ARRAY (0 TO 27) OF natural RANGE 0 TO 63;
-    VARIABLE table : matrix := (56, 48, 40, 32, 24, 16,  8,
-                                 0, 57, 49, 41, 33, 25, 17,
-                                 9,  1, 58, 50, 42, 34, 26,
-                                18, 10,  2, 59, 51, 43, 35);
     VARIABLE result : std_logic_vector(0 TO 27);
   BEGIN
     FOR index IN 0 TO 27 LOOP
-      result( index ) := input_vector( table( index ) );
+      result( index ) := input_vector( pc1c_table( index ) );
     END LOOP;
     RETURN result;
   END FUNCTION pc1_c;
 
   FUNCTION pc1_d ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector IS
-    TYPE matrix IS ARRAY (0 TO 27) OF natural RANGE 0 TO 63;
-    VARIABLE table : matrix := (62, 54, 46, 38, 30, 22, 14,
-                                 6, 61, 53, 45, 37, 29, 21,
-                                13,  5, 60, 52, 44, 36, 28,
-                                20, 12,  4, 27, 19, 11,  3);
+
     VARIABLE result : std_logic_vector(0 TO 27);
   BEGIN
     FOR index IN 0 TO 27 LOOP
-      result( index ) := input_vector( table( index ) );
+      result( index ) := input_vector( pc1d_table( index ) );
     END LOOP;
     RETURN result;
   END FUNCTION pc1_d;
 
   FUNCTION pc2 ( input_vector : std_logic_vector(0 TO 55) ) RETURN std_logic_vector IS
-    TYPE matrix IS ARRAY (0 TO 47) OF natural RANGE 0 TO 63;
-    VARIABLE table : matrix := (13, 16, 10, 23,  0,  4,
-                                 2, 27, 14,  5, 20,  9,
-                                22, 18, 11,  3, 25,  7,
-                                15,  6, 26, 19, 12,  1,
-                                40, 51, 30, 36, 46, 54,
-                                29, 39, 50, 44, 32, 47,
-                                43, 48, 38, 55, 33, 52,
-                                45, 41, 49, 35, 28, 31);
     VARIABLE result : std_logic_vector(0 TO 47);
   BEGIN
     FOR index IN 0 TO 47 LOOP
-      result( index ) := input_vector( table( index ) );
+      result( index ) := input_vector( pc2_table( index ) );
     END LOOP;
     RETURN result;
   END FUNCTION pc2;
