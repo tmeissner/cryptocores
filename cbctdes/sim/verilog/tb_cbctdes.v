@@ -63,11 +63,11 @@ module tb_cbctdes;
   initial begin
     reset = 1;
     #1  reset = 0;
-    #20 reset = 1;
+    #100 reset = 1;
   end
 
-    // generate clock with 100 mhz
-  always #5 clk = !clk;
+    // generate clock with 50 mhz
+  always #10 clk = !clk;
 
 
   // init the register values
