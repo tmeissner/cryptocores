@@ -26,10 +26,8 @@ use ieee.numeric_std.all;
 use work.aes_pkg.all;
 
 
+
 entity aes is
-  generic (
-    ovl_enable  : in  boolean
-  );
   port (
     reset_i     : in  std_logic;                   -- async reset
     clk_i       : in  std_logic;                   -- clock
@@ -41,6 +39,7 @@ entity aes is
     valid_o     : out std_logic                    -- output data valid flag
   );
 end entity aes;
+
 
 
 architecture rtl of aes is
