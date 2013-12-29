@@ -19,37 +19,17 @@
 # ======================================================================
 
 
-# enable the compile of the OVL library
-# if set to 1, you must have the OVL_SRC files in the OVL_LOC directory
-OVL_ENABLE = 1
-
-# the location and sources of the OVL library (copyright of Accellera)
-# OVL is not included in this project, you can download it from
-# the Accellera homepage: http://www.accellera.org/downloads/standards/ovl/
-OVL_LOC    = ../../../../../OVL/
-ifeq ($(OVL_ENABLE), 1)
-  OVL_SRC    = $(OVL_LOC)/std_ovl.vhd $(OVL_LOC)/std_ovl_components.vhd \
-               $(OVL_LOC)/std_ovl_procs.vhd $(OVL_LOC)/std_ovl_clock_gating.vhd \
-               $(OVL_LOC)/std_ovl_reset_gating.vhd $(OVL_LOC)/ovl_*.vhd \
-               $(OVL_LOC)/vhdl93/ovl_*_rtl.vhd
-  OVL = _ovl
-else
-  OVL_SRC =
-  OVL =
-endif
-
 all : sim wave
 
 sim : tb_aes.ghw
 
-tb_aes.ghw : ../../rtl/vhdl/*.vhd tb_aes$(OVL).vhd $(OVL_SRC)
-	ghdl -a --work=accellera_ovl_vhdl $(OVL_SRC)
-	ghdl -a ../../rtl/vhdl/aes_pkg$(OVL).vhd ../../rtl/vhdl/aes.vhd tb_aes$(OVL).vhd
+tb_aes.ghw : ../../rtl/vhdl/*.vhd tb_aes.vhd
+	ghdl -a ../../rtl/vhdl/aes_pkg.vhd ../../rtl/vhdl/aes.vhd tb_aes.vhd
 	ghdl -e tb_aes
 	ghdl -r tb_aes --wave=tb_aes.ghw --assert-level=error --stop-time=10us
 	
 wave : tb_aes.ghw
-	gtkwave -T tb_aes.tcl tb_aes.ghw
+	gtkwave -S tb_aes.tcl tb_aes.ghw
 	
 clean :
 	echo "# cleaning simulation files"
