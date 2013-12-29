@@ -19,17 +19,16 @@
 -- ======================================================================
 
 
--- Revision 0.1   2011/10/22
--- Initial release
-
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 
+
 entity tb_aes is
 end entity tb_aes;
+
 
 
 architecture rtl of tb_aes is
@@ -46,9 +45,6 @@ architecture rtl of tb_aes is
 
 
   component aes is
-    generic (
-      ovl_enable  : boolean
-    );
     port (
       reset_i     : in  std_logic;
       clk_i       : in  std_logic;
@@ -70,9 +66,6 @@ begin
 
 
   i_aes : aes
-  generic map (
-    ovl_enable => false
-  )
   port map (
     reset_i  => s_reset,
     clk_i    => s_clk,
