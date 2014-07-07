@@ -88,6 +88,7 @@ module tb_tdes;
   initial
     forever @(negedge reset) begin
       index = 0;
+      wait (reset);
       while (index < 19) begin
         @(posedge clk)
           if (ready) begin
