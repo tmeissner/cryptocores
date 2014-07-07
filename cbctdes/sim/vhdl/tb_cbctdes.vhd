@@ -32,7 +32,7 @@ architecture rtl of tb_cbctdes is
 
 
   type t_array is array (natural range <>) of std_logic_vector(0 to 63);
-  
+
   constant c_table_test_plain : t_array(0 to 18) :=
     (x"01A1D6D039776742", x"5CD54CA83DEF57DA", x"0248D43806F67172",
      x"51454B582DDF440A", x"42FD443059577FA2", x"059B5E0851CF143A",
@@ -83,7 +83,7 @@ begin
 
   s_reset <= '1' after 100 ns;
   s_clk   <= not(s_clk) after 10 ns;
- 
+
 
   teststimuliP : process is
   begin
@@ -95,6 +95,7 @@ begin
     s_key2    <= (others => '0');
     s_key3    <= (others => '0');
     s_datain  <= (others => '0');
+    wait until s_reset = '1';
     -- ENCRYPTION TESTS
     -- cbc known answers test
     for index in c_table_test_plain'range loop
@@ -148,8 +149,8 @@ begin
     s_datain  <= (others => '0');
     wait;
   end process teststimuliP;
-  
-  
+
+
   testcheckerP : process is
   begin
     report "# ENCRYPTION TESTS";
@@ -181,10 +182,10 @@ begin
     key2_i   => s_key2,
     key3_i   => s_key3,
     data_i   => s_datain,
-    valid_i  => s_validin, 
+    valid_i  => s_validin,
     data_o   => s_dataout,
     valid_o  => s_validout,
-    ready_o  => s_ready              
+    ready_o  => s_ready
   );
 
 
