@@ -62,7 +62,7 @@ architecture rtl of cbctdes is
       ready_o     : out std_logic
     );
   end component tdes;
- 
+
 
   signal s_mode       : std_logic;
   signal s_des_mode   : std_logic;
@@ -83,8 +83,7 @@ architecture rtl of cbctdes is
   signal s_validout   : std_logic;
   signal s_ready      : std_logic;
   signal s_readyout   : std_logic;
-  signal s_reset      : std_logic;
- 
+
 
 begin
 
@@ -107,7 +106,6 @@ begin
   inputregister : process(clk_i, reset_i) is
   begin
     if(reset_i = '0') then
-      s_reset    <= '0';
       s_mode     <= '0';
       s_start    <= '0';
       s_key1     <= (others => '0');
@@ -117,7 +115,6 @@ begin
       s_datain   <= (others => '0');
       s_datain_d <= (others => '0');
     elsif(rising_edge(clk_i)) then
-      s_reset  <= reset_i;
       if(valid_i = '1' and s_ready = '1') then
         s_start  <= start_i;
         s_datain   <= data_i;
@@ -137,23 +134,23 @@ begin
   outputregister : process(clk_i, reset_i) is
   begin
     if(reset_i = '0') then
-      s_ready   <= '0';
+      s_ready   <= '1';
       s_dataout <= (others => '0');
     elsif(rising_edge(clk_i)) then
       if(valid_i = '1' and s_ready = '1' and s_readyout = '1') then
         s_ready <= '0';
       end if;
-      if(s_validout = '1' or (reset_i = '1' and s_reset = '0')) then
+      if(s_validout = '1') then
         s_ready   <= '1';
         s_dataout <= s_des_dataout;
       end if;
     end if;
   end process outputregister;
-      
+
 
   i_tdes : tdes
     port map (
-      reset_i => s_reset,
+      reset_i => reset_i,
       clk_i   => clk_i,
       mode_i  => s_des_mode,
       key1_i  => s_tdes_key1,
