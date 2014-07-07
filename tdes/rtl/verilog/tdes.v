@@ -38,7 +38,6 @@ module tdes
   );
 
 
-  reg reset;
   reg mode;
   reg [0:63] key1;
   reg [0:63] key2;
@@ -65,14 +64,12 @@ module tdes
   // input register
   always @(posedge clk_i, negedge reset_i) begin
     if (~reset_i) begin
-      reset <= 0;
       mode  <= 0;
       key1  <= 0;
       key2  <= 0;
       key3  <= 0;
     end
     else begin
-      reset <= reset_i;
       if (valid_i && ready_o) begin
         mode <= mode_i;
         key1 <= key1_i;
@@ -86,13 +83,13 @@ module tdes
   // output register
   always @(posedge clk_i, negedge reset_i) begin
     if (~reset_i) begin
-      ready_o <= 0;
+      ready_o <= 1;
     end
     else begin
       if (valid_i && ready_o) begin
         ready_o <= 0;
       end
-      if (valid_o || (reset_i && ~reset)) begin
+      if (valid_o) begin
         ready_o <= 1;
       end
     end
