@@ -85,6 +85,8 @@ package aes_pkg is
 
   function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector;
 
+  function addroundkey (data : in std_logic_vector(127 downto 0), key )
+
 
 end package aes_pkg;
 
