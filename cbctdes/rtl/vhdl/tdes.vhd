@@ -60,7 +60,6 @@ architecture rtl of tdes is
 
 
   signal s_ready         : std_logic;
-  signal s_reset         : std_logic;
   signal s_mode          : std_logic;
   signal s_des2_mode     : std_logic;
   signal s_des1_validin  : std_logic := '0';
@@ -90,13 +89,11 @@ begin
   inputregister : process(clk_i, reset_i) is
   begin
     if(reset_i = '0') then
-      s_reset <= '0';
       s_mode  <= '0';
       s_key1  <= (others => '0');
       s_key2  <= (others => '0');
       s_key3  <= (others => '0');
     elsif(rising_edge(clk_i)) then
-      s_reset  <= reset_i;
       if(valid_i = '1' and s_ready = '1') then
         s_mode <= mode_i;
         s_key1 <= key1_i;
@@ -105,17 +102,17 @@ begin
       end if;
     end if;
   end process inputregister;
-  
+
 
   outputregister : process(clk_i, reset_i) is
   begin
     if(reset_i = '0') then
-      s_ready   <= '0';
+      s_ready   <= '1';
     elsif(rising_edge(clk_i)) then
       if(valid_i = '1' and s_ready = '1') then
         s_ready <= '0';
       end if;
-      if(s_des3_validout = '1' or (reset_i = '1' and s_reset = '0')) then
+      if(s_des3_validout = '1') then
         s_ready   <= '1';
       end if;
     end if;
