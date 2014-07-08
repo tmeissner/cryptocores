@@ -85,6 +85,8 @@ package aes_pkg is
 
   function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector;
 
+  function addroundkey (data : in std_logic_vector(127 downto 0), key )
+
 
 end package aes_pkg;
 
@@ -171,7 +173,7 @@ package body aes_pkg is
       v_hi_bit_set := a(7);
       v_a          := v_a(6 downto 0) & '0';
       if(v_hi_bit_set = '1') then
-	v_a := v_a xor x"01";
+        v_a := v_a xor x"01";
       end if;
       v_b := '0' & v_b(7 downto 1);
     end loop;
@@ -180,13 +182,16 @@ package body aes_pkg is
 
 
   -- matrix columns manipulation
-  -- 02 03 01 01
-  -- 01 02 03 01
-  -- 01 01 02 03
-  -- 03 01 01 02
   function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d is
     variable v_data : t_datatable2d;
   begin
+    for index in 0 to 3 loop
+      v_data(index)(0) := gmul(x"02",input(index)(0)) xor gmul(x"03",input(index)(1)) xor input(index)(2) xor input(index)(3); 
+      v_data(index)(1) := input(index)(0) xor gmul(x"02",input(index)(1)) xor gmul(x"03",input(index)(2))  xor input(index)(3); 
+      v_data(index)(2) := input(index)(0) xor input(index)(1) xor gmul(x"02",input(index)(2))  xor gmul(x"03",input(index)(3)); 
+      v_data(index)(3) := gmul(x"03", input(index)(0)) xor input(index)(1) xor input(index)(2) xor gmul(x"02",input(index)(3)); 
+    end loop;
+    return v_data;
   end function mixcolumns;
 
 

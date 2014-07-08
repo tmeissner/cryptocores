@@ -44,9 +44,9 @@ module cbctdes
   wire        tdes_mode;
   reg         start;
   reg  [0:63] key;
-  wire [0:63]  tdes_key1;
-  wire [0:63]  tdes_key2;
-  wire [0:63]  tdes_key3;
+  wire [0:63] tdes_key1;
+  wire [0:63] tdes_key2;
+  wire [0:63] tdes_key3;
   reg [0:63]  key1;
   reg [0:63]  key2;
   reg [0:63]  key3;
@@ -56,7 +56,6 @@ module cbctdes
   reg  [0:63] tdes_datain;
   wire        validin;
   wire [0:63] tdes_dataout;
-  reg         reset;
   reg  [0:63] dataout;
   wire        tdes_ready;
 
@@ -97,18 +96,16 @@ module cbctdes
   // input register
   always @(posedge clk_i, negedge reset_i) begin
     if (~reset_i) begin
-      reset     <= 0;
       mode      <= 0;
       start     <= 0;
-      key1 <= 0;
-      key2 <= 0;
-      key3 <= 0;
+      key1      <= 0;
+      key2      <= 0;
+      key3      <= 0;
       iv        <= 0;
       datain    <= 0;
       datain_d  <= 0;
     end
     else begin
-      reset <= reset_i;
       if (valid_i && ready_o) begin
         start    <= start_i;
         datain   <= data_i;
@@ -128,14 +125,14 @@ module cbctdes
     // output register
   always @(posedge clk_i, negedge reset_i) begin
     if (~reset_i) begin
-      ready_o <= 0;
+      ready_o <= 1;
       dataout <= 0;
     end
     else begin
       if (valid_i && ready_o && tdes_ready) begin
         ready_o <= 0;
       end
-      else if (valid_o || (reset_i && ~reset)) begin
+      else if (valid_o) begin
         ready_o <= 1;
         dataout <= tdes_dataout;
       end
@@ -145,7 +142,7 @@ module cbctdes
 
   // des instance
   tdes i_tdes (
-    .reset_i(reset),
+    .reset_i(reset_i),
     .clk_i(clk_i),
     .mode_i(tdes_mode),
     .key1_i(tdes_key1),

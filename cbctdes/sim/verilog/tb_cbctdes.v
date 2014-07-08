@@ -89,6 +89,7 @@ module tb_cbctdes;
   initial
     forever @(negedge reset) begin
       index = 0;
+      wait (reset);
       while (index < 19) begin
         @(posedge clk)
           if (ready) begin
@@ -131,7 +132,7 @@ module tb_cbctdes;
   // checker process
   always begin : checker
 
-    wait (reset)
+    wait (reset);
 
     outdex = 0;
     // encryption tests
