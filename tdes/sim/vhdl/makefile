@@ -32,9 +32,11 @@ tb_tdes.ghw : $(SRC_FILES) tb_tdes.vhd
 	ghdl -r tb_tdes --wave=tb_tdes.ghw --assert-level=error --stop-time=45us
 	
 wave : tb_tdes.ghw
-	gtkwave -T tb_tdes.tcl tb_tdes.ghw
+	gtkwave -s tb_tdes.tcl tb_tdes.ghw
 	
 clean :
 	echo "# cleaning simulation files"
 	rm -f *.ghw
+	rm -f *.o
+	rm -f tb_tdes
 	rm -f work*.cf
