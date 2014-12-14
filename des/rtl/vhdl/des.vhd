@@ -380,7 +380,7 @@ begin
         v_mode    := NOP;
         s_accept  <= '0';
         s_valid   <= '0';
-        data_o    <= (others => '0');
+        --data_o    <= (others => '0');
       elsif rising_edge(clk_i) then
         case v_rnd_cnt is
 
@@ -388,7 +388,7 @@ begin
           when 0 =>
             s_accept <= '1';
             s_valid  <= '0';
-            data_o   <= (others => '0');
+            --data_o   <= (others => '0');
             if (valid_i = '1' and s_accept = '1') then
               s_accept  <= '0';
               s_valid   <= '0';
@@ -630,6 +630,7 @@ begin
 
     valid_o  <= s_valid;
     accept_o <= s_accept;
+    data_o   <= ipn(s_r & s_l) when s_valid = '1' else (others => '0');
 
   end generate AreaG;
 
