@@ -21,8 +21,9 @@
 
 library ieee;
   use ieee.std_logic_1164.all;
-  use ieee.numeric_std.ALL;
-  use work.des_pkg.ALL;
+  use ieee.numeric_std.all;
+  use work.des_pkg.all;
+
 
 
 entity des is
@@ -349,8 +350,6 @@ begin
 
   AreaG : if design_type = "ITER" generate
 
-    type t_mode is (NOP, CRYPT, DECRYPT);
-
     signal s_accept : std_logic;
     signal s_valid  : std_logic;
 
@@ -361,13 +360,10 @@ begin
 
 
     cryptP : process (clk_i, reset_i) is
-      -- variables for key calculation
-      variable v_c : std_logic_vector(0 to 27);
-      variable v_d : std_logic_vector(0 to 27);
-      -- key variables
-      variable v_key : std_logic_vector(0 to 47);
-      -- variables for mode & valid shift registers
-      variable v_mode  : t_mode;
+      variable v_c       : std_logic_vector(0 to 27);
+      variable v_d       : std_logic_vector(0 to 27);
+      variable v_key     : std_logic_vector(0 to 47);
+      variable v_mode    : std_logic;
       variable v_rnd_cnt : natural;
     begin
       if(reset_i = '0') then
@@ -377,7 +373,7 @@ begin
         s_l       <= (others => '0');
         s_r       <= (others => '0');
         v_rnd_cnt := 0;
-        v_mode    := NOP;
+        v_mode    := '0';
         s_accept  <= '0';
         s_valid   <= '0';
       elsif rising_edge(clk_i) then
@@ -394,17 +390,13 @@ begin
               s_r       <= ip(data_i)(32 to 63);
               v_c       := pc1_c(key_i);
               v_d       := pc1_d(key_i);
+              v_mode    := mode_i;
               v_rnd_cnt := v_rnd_cnt + 1;
-              if (mode_i = '0') then
-                v_mode := CRYPT;
-              else
-                v_mode := DECRYPT;
-              end if;
             end if;
 
           -- stage 1
           when 1 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(1 to 27) & v_c(0);
               v_d := v_d(1 to 27) & v_d(0);
             end if;
@@ -414,7 +406,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 2 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(1 to 27) & v_c(0);
               v_d := v_d(1 to 27) & v_d(0);
             else
@@ -427,7 +419,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 3 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -440,7 +432,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 4 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -453,7 +445,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 5 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -466,7 +458,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 6 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -479,7 +471,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 7 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -492,7 +484,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 8 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -505,7 +497,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 9 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(1 to 27) & v_c(0);
               v_d := v_d(1 to 27) & v_d(0);
             else
@@ -518,7 +510,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 10 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -532,7 +524,7 @@ begin
 
           when 11 =>
             -- 11. stage
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -545,7 +537,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 12 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -558,7 +550,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 13 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -571,7 +563,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 14 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -584,7 +576,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 15 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(2 to 27) & v_c(0 to 1);
               v_d := v_d(2 to 27) & v_d(0 to 1);
             else
@@ -597,7 +589,7 @@ begin
             v_rnd_cnt := v_rnd_cnt + 1;
 
           when 16 =>
-            if (v_mode = CRYPT) then
+            if (v_mode = '0') then
               v_c := v_c(1 to 27) & v_c(0);
               v_d := v_d(1 to 27) & v_d(0);
             else
