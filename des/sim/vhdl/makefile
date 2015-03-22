@@ -34,6 +34,7 @@ wave : tb_des.ghw
 
 clean :
 	echo "# cleaning simulation files"
+	rm -f tb_des
 	rm -f *.o
 	rm -f tb_des.ghw
 	rm -f work*.cf
