@@ -1,0 +1,12 @@
+set signals [list]
+lappend signals "top.tb_cbcmac_des.s_reset"
+lappend signals "top.tb_cbcmac_des.s_clk"
+lappend signals "top.tb_cbcmac_des.s_validin"
+lappend signals "top.tb_cbcmac_des.s_acceptout"
+lappend signals "top.tb_cbcmac_des.s_start"
+lappend signals "top.tb_cbcmac_des.s_key"
+lappend signals "top.tb_cbcmac_des.s_datain"
+lappend signals "top.tb_cbcmac_des.s_validout"
+lappend signals "top.tb_cbcmac_des.s_acceptin"
+lappend signals "top.tb_cbcmac_des.s_dataout"
+set num_added [ gtkwave::addSignalsFromList $signals ]
