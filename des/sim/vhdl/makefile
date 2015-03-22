@@ -27,12 +27,13 @@ sim : tb_des.ghw
 tb_des.ghw : ../../rtl/vhdl/*.vhd tb_des.vhd
 	ghdl -a ../../rtl/vhdl/des_pkg.vhd ../../rtl/vhdl/des.vhd tb_des.vhd
 	ghdl -e tb_des
-	ghdl -r tb_des --wave=tb_des.ghw --assert-level=error --stop-time=11us
+	ghdl -r tb_des --wave=tb_des.ghw --assert-level=error --stop-time=100us
 
 wave : tb_des.ghw
 	gtkwave -S tb_des.tcl tb_des.ghw
-	
+
 clean :
 	echo "# cleaning simulation files"
+	rm -f *.o
 	rm -f tb_des.ghw
 	rm -f work*.cf
