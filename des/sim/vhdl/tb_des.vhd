@@ -19,19 +19,9 @@
 -- ======================================================================
 
 
--- Revision 1.0   2011/09/17
--- Initial release
--- Revision 1.0.1 2011/09/18
--- tests partial adopted to NIST 800-16 publication
--- Revision 1.0.2 2011/09/18
--- includes more tests of NIST 800-16 publication
--- Revision 1.1 2011/09/18
--- now with all ecb tests of NIST 800-17 publication except the modes-tests
-
-
 library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 
 entity tb_des is
@@ -42,7 +32,7 @@ architecture rtl of tb_des is
 
 
   type t_array is array (natural range <>) of std_logic_vector(0 to 63);
-  
+
   constant c_variable_plaintext_known_answers : t_array(0 to 63) :=
     (x"95F8A5E5DD31D900", x"DD7F121CA5015619", x"2E8653104F3834EA",
      x"4BD388FF6CD81D4F", x"20B9E767B2FB1456", x"55579380D77138EF",
@@ -57,7 +47,7 @@ architecture rtl of tb_des is
      x"E428581186EC8F46", x"AEB5F5EDE22D1A36", x"E943D7568AEC0C5C",
      x"DF98C8276F54B04B", x"B160E4680F6C696F", x"FA0752B07D9C4AB8",
      x"CA3A2B036DBC8502", x"5E0905517BB59BCF", x"814EEB3B91D90726",
-     x"4D49DB1532919C9F", x"25EB5FC3F8CF0621", x"AB6A20C0620D1C6F", 
+     x"4D49DB1532919C9F", x"25EB5FC3F8CF0621", x"AB6A20C0620D1C6F",
      x"79E90DBC98F92CCA", x"866ECEDD8072BB0E", x"8B54536F2F3E64A8",
      x"EA51D3975595B86B", x"CAFFC6AC4542DE31", x"8DD45A2DDF90796C",
      x"1029D55E880EC2D0", x"5D86CB23639DBEA9", x"1D1CA853AE7C0C5F",
@@ -141,17 +131,22 @@ architecture rtl of tb_des is
      x"2F22E49BAB7CA1AC", x"5A6B612CC26CCE4A", x"5F4C038ED12B2E41",
      x"63FAC0D034D9F793");
 
-  signal s_reset    : std_logic := '0';
-  signal s_clk      : std_logic := '0';
-  signal s_mode     : std_logic := '0';
-  signal s_key      : std_logic_vector(0 to 63) := (others => '0');
-  signal s_datain   : std_logic_vector(0 to 63) := (others => '0');
-  signal s_validin  : std_logic := '0';
-  signal s_dataout  : std_logic_vector(0 to 63);
-  signal s_validout : std_logic;
+  signal s_reset     : std_logic := '0';
+  signal s_clk       : std_logic := '0';
+  signal s_mode      : std_logic := '0';
+  signal s_key       : std_logic_vector(0 to 63) := (others => '0');
+  signal s_datain    : std_logic_vector(0 to 63) := (others => '0');
+  signal s_validin   : std_logic := '0';
+  signal s_acceptout : std_logic;
+  signal s_dataout   : std_logic_vector(0 to 63);
+  signal s_validout  : std_logic;
+  signal s_acceptin  : std_logic;
 
 
   component des is
+    generic (
+      design_type : string := "ITER"
+    );
     port (
       reset_i     : in  std_logic;
       clk_i       : in  std_logic;
@@ -159,8 +154,10 @@ architecture rtl of tb_des is
       key_i       : in  std_logic_vector(0 TO 63);
       data_i      : in  std_logic_vector(0 TO 63);
       valid_i     : in  std_logic;
+      accept_o    : out std_logic;
       data_o      : out std_logic_vector(0 TO 63);
-      valid_o     : out std_logic
+      valid_o     : out std_logic;
+      accept_i    : in  std_logic
     );
   end component des;
 
@@ -170,7 +167,8 @@ begin
 
   s_clk   <= not(s_clk) after 10 ns;
   s_reset <= '1' after 100 ns;
-  
+
+
   teststimuliP : process is
   begin
     -- ENCRYPTION TESTS
@@ -179,166 +177,169 @@ begin
     s_key     <= x"0101010101010101";
     s_datain  <= x"8000000000000000";
     wait until s_reset = '1';
+    wait until rising_edge(s_clk);
     -- Variable plaintext known answer test
     for index in c_variable_plaintext_known_answers'range loop
-      wait until rising_edge(s_clk);
-        s_validin <= '1';
-        if(index /= 0) then
-          s_datain <= '0' & s_datain(0 to 62);
-        end if;
+      s_validin <= '1';
+      if(index /= 0) then
+        s_datain <= '0' & s_datain(0 to 62);
+      end if;
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
+    wait until rising_edge(s_clk);
     -- Inverse permutation known answer test
     s_key     <= x"0101010101010101";
     for index in c_variable_plaintext_known_answers'range loop
-      wait until rising_edge(s_clk);
-        s_validin <= '1';
-        s_datain  <= c_variable_plaintext_known_answers(index);
+      s_validin <= '1';
+      s_datain  <= c_variable_plaintext_known_answers(index);
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
+    wait until rising_edge(s_clk);
     -- Variable key known answer test
     s_key     <= x"8000000000000000";
     for index in c_variable_key_known_answers'range loop
-      wait until rising_edge(s_clk);
-        s_validin <= '1';
-        if(index /= 0) then
-          if(index = 7 or index = 14 or index = 21 or index = 28 or index = 35 or
-             index = 42 or index = 49) then
-            s_key <= "00" & s_key(0 to 61);
-          else
-            s_key <= '0' & s_key(0 to 62);
-          end if;
+      s_validin <= '1';
+      if(index /= 0) then
+        if(index = 7 or index = 14 or index = 21 or index = 28 or index = 35 or
+           index = 42 or index = 49) then
+          s_key <= "00" & s_key(0 to 61);
+        else
+          s_key <= '0' & s_key(0 to 62);
         end if;
+      end if;
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
+    wait until rising_edge(s_clk);
     -- Permutation operation known answer test
     s_datain <= x"0000000000000000";
     for index in c_permutation_operation_known_answers_keys'range loop
-      wait until rising_edge(s_clk);
-        s_validin <= '1';
-        s_key     <= c_permutation_operation_known_answers_keys(index);
+      s_validin <= '1';
+      s_key     <= c_permutation_operation_known_answers_keys(index);
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
+    wait until rising_edge(s_clk);
     -- Substitution table known answer test
     for index in c_substitution_table_test_keys'range loop
-      wait until rising_edge(s_clk);
-        s_validin <= '1';
-        s_key     <= c_substitution_table_test_keys(index);
-        s_datain  <= c_substitution_table_test_plain(index);
+      s_validin <= '1';
+      s_key     <= c_substitution_table_test_keys(index);
+      s_datain  <= c_substitution_table_test_plain(index);
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     -- DECRYPTION TESTS
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
+    wait until rising_edge(s_clk);
     -- Variable ciphertext known answer test
     s_key     <= x"0101010101010101";
     for index in c_variable_plaintext_known_answers'range loop
-      wait until rising_edge(s_clk);
-        s_mode    <= '1';
-        s_validin <= '1';
-        s_datain  <= c_variable_plaintext_known_answers(index);
+      s_mode    <= '1';
+      s_validin <= '1';
+      s_datain  <= c_variable_plaintext_known_answers(index);
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
+    wait until rising_edge(s_clk);
     -- Initial permutation known answer test
     s_key     <= x"0101010101010101";
     s_datain  <= x"8000000000000000";
     for index in c_variable_plaintext_known_answers'range loop
-      wait until rising_edge(s_clk);
-        s_mode    <= '1';
-        s_validin <= '1';
-        if(index /= 0) then
-          s_datain <= '0' & s_datain(0 to 62);
-        end if;
+      s_mode    <= '1';
+      s_validin <= '1';
+      if(index /= 0) then
+        s_datain <= '0' & s_datain(0 to 62);
+      end if;
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
+    wait for 100 ns;
+    wait until rising_edge(s_clk);
     -- Variable key known answer test
     s_key     <= x"8000000000000000";
     for index in c_variable_key_known_answers'range loop
-      wait until rising_edge(s_clk);
-        s_mode    <= '1';
-        s_validin <= '1';
-        s_datain  <= c_variable_key_known_answers(index);
-        if(index /= 0) then
-          if(index = 7 or index = 14 or index = 21 or index = 28 or index = 35 or
-             index = 42 or index = 49) then
-            s_key <= "00" & s_key(0 to 61);
-          else
-            s_key <= '0' & s_key(0 to 62);
-          end if;
+      s_mode    <= '1';
+      s_validin <= '1';
+      s_datain  <= c_variable_key_known_answers(index);
+      if(index /= 0) then
+        if(index = 7 or index = 14 or index = 21 or index = 28 or index = 35 or
+           index = 42 or index = 49) then
+          s_key <= "00" & s_key(0 to 61);
+        else
+          s_key <= '0' & s_key(0 to 62);
         end if;
+      end if;
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
+    wait until rising_edge(s_clk);
     -- Permutation operation known answer test
     for index in c_permutation_operation_known_answers_keys'range loop
-      wait until rising_edge(s_clk);
-        s_mode    <= '1';
-        s_validin <= '1';
-        s_datain  <= c_permutation_operation_known_answers_cipher(index);
-        s_key     <= c_permutation_operation_known_answers_keys(index);
+      s_mode    <= '1';
+      s_validin <= '1';
+      s_datain  <= c_permutation_operation_known_answers_cipher(index);
+      s_key     <= c_permutation_operation_known_answers_keys(index);
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait for 100 ns;
+    wait until rising_edge(s_clk);
     -- Substitution table known answer test
     for index in c_substitution_table_test_keys'range loop
-      wait until rising_edge(s_clk);
-        s_mode    <= '1';
-        s_validin <= '1';
-        s_key     <= c_substitution_table_test_keys(index);
-        s_datain  <= c_substitution_table_test_cipher(index);
+      s_mode    <= '1';
+      s_validin <= '1';
+      s_key     <= c_substitution_table_test_keys(index);
+      s_datain  <= c_substitution_table_test_cipher(index);
+      wait until rising_edge(s_clk) and s_acceptout = '1';
     end loop;
-    wait until rising_edge(s_clk);
     s_mode    <= '0';
     s_validin <= '0';
     s_key     <= (others => '0');
     s_datain  <= (others => '0');
     wait;
   end process teststimuliP;
-  
-  
+
+
   testcheckerP : process is
     variable v_plaintext : std_logic_vector(0 to 63) := x"8000000000000000";
   begin
+    s_acceptin <= '1';
+    wait until s_reset = '1';
     report "# ENCRYPTION TESTS";
     report "# Variable plaintext known answer test";
     for index in c_variable_plaintext_known_answers'range loop
@@ -381,7 +382,7 @@ begin
     v_plaintext := x"8000000000000000";
     for index in c_variable_plaintext_known_answers'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
-        assert (s_dataout = v_plaintext) 
+        assert (s_dataout = v_plaintext)
           report "decryption error"
           severity error;
         v_plaintext := '0' & v_plaintext(0 to 62);
@@ -415,20 +416,26 @@ begin
           severity error;
     end loop;
     report "# Successfully passed all tests";
+    assert false;
     wait;
   end process testcheckerP;
 
 
   i_des : des
+  generic map (
+    design_type => "ITER"
+  )
   port map (
     reset_i  => s_reset,
     clk_i    => s_clk,
     mode_i   => s_mode,
     key_i    => s_key,
     data_i   => s_datain,
-    valid_i  => s_validin,               
+    valid_i  => s_validin,
+    accept_o => s_acceptout,
     data_o   => s_dataout,
-    valid_o  => s_validout
+    valid_o  => s_validout,
+    accept_i => s_acceptin
   );
 
 
