@@ -491,12 +491,12 @@ module des
 
     always @(posedge clk_i, negedge reset_i) begin
       if (~reset_i) begin
-        c        <= 0;
-        d        <= 0;
+        c <= 0;
+        d <= 0;
       end else begin
         case (state)
 
-          3, 4, 5, 6, 7, 8 , 10 , 11, 12, 13, 14, 15 : begin
+          3, 4, 5, 6, 7, 8 , 10, 11, 12, 13, 14, 15 : begin
             if (mode) begin
               c <= {c[26:27], c[0:25]};
               d <= {d[26:27], d[0:25]};
@@ -533,8 +533,6 @@ module des
         l        <= 0;
         r        <= 0;
         key      <= 0;
-        c        <= 0;
-        d        <= 0;
         state    <= 0;
         mode     <= 0;
         valid    <= 0;
@@ -549,8 +547,6 @@ module des
             l        <= 0;
             r        <= 0;
             key      <= 0;
-            c        <= 0;
-            d        <= 0;
             mode     <= 0;
             valid    <= 0;
             accept_o <= 1;
