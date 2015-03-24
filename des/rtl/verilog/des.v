@@ -501,7 +501,6 @@ module des
               c <= {c[26:27], c[0:25]};
               d <= {d[26:27], d[0:25]};
             end else begin
-              r <= l ^ f(r, pc2({c[2:27], c[0:1], d[2:27], d[0:1]}));
               c <= {c[2:27], c[0:1]};
               d <= {d[2:27], d[0:1]};
             end
@@ -519,7 +518,6 @@ module des
               c <= {c[27], c[0:26]};
               d <= {d[27], d[0:26]};
             end else begin
-              r <= l ^ f(r, pc2({c[1:27], c[0], d[1:27], d[0]}));
               c <= {c[1:27], c[0]};
               d <= {d[1:27], d[0]};
             end
@@ -730,7 +728,7 @@ module des
           17 : begin
             valid <= 1;
             data_o <= ipn({r, l});
-            if (valid&& accept_i) begin
+            if (valid && accept_i) begin
               valid <= 0;
               state <= 0;
             end
