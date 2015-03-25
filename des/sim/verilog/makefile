@@ -22,20 +22,32 @@
 SRC_FILES = ../../rtl/verilog/*.v tb_des.v
 SIM_FILES = data_input.txt key_input.txt data_output.txt
 
+.PHONY: all
+all : sim_pipe sim_iter
 
-all : sim wave
+.PHONY: sim_pipe
+sim_pipe : tb_des_pipe.vcd
 
-sim : tb_des.vcd
+.PHONY: sim_iter
+sim_iter : tb_des_iter.vcd
 
+tb_des_pipe.vcd : $(SRC_FILES) $(SIM_FILES)
+	iverilog -Wall -DPIPE -s tb_des -o tb_des_pipe tb_des.v ../../rtl/verilog/des.v
+	vvp tb_des_pipe
 
-tb_des.vcd : $(SRC_FILES) $(SIM_FILES)
-	iverilog -Wall -s tb_des -o tb_des tb_des.v ../../rtl/verilog/des.v
-	vvp tb_des
+tb_des_iter.vcd : $(SRC_FILES) $(SIM_FILES)
+	iverilog -Wall -DITER -s tb_des -o tb_des_iter tb_des.v ../../rtl/verilog/des.v
+	vvp tb_des_iter
 
-wave : tb_des.vcd
-	gtkwave -T tb_des.tcl tb_des.vcd
-	
+.PHONY: wave_pipe
+wave_pipe : tb_des_pipe.vcd
+	gtkwave -S tb_des.tcl tb_des_pipe.vcd &
+
+.PHONY: wave_iter
+wave_iter : tb_des_iter.vcd
+	gtkwave -S tb_des.tcl tb_des_iter.vcd &
+
 clean :
 	echo "# cleaning simulation files"
-	rm -f tb_des
+	rm -f tb_des_*
 	rm -f tb_des.vcd

@@ -21,14 +21,17 @@
 `timescale 1ns/1ps
 
 
-
 module tb_des;
 
 
   // set dumpfile
   initial begin
-     $dumpfile ("tb_des.vcd");
-     $dumpvars (0, tb_des);
+`ifdef ITER
+    $dumpfile ("tb_des_iter.vcd");
+`else
+    $dumpfile ("tb_des_pipe.vcd");
+`endif
+    $dumpvars (0, tb_des);
   end
 
 
@@ -38,17 +41,18 @@ module tb_des;
   reg [0:63] key;
   reg [0:63] datain;
   reg validin;
+  reg acceptin;
   integer index;
   integer outdex;
   integer enc_errors;
   integer dec_errors;
   wire [0:63] dataout;
   wire validout;
+  wire acceptout;
 
   reg [0:63] data_input  [0:469];
   reg [0:63] key_input   [0:469];
   reg [0:63] data_output [0:469];
-
 
   // read in test data files
   initial begin
@@ -86,15 +90,23 @@ module tb_des;
 
    // stimuli generator process
   initial
-    forever @(negedge reset) begin
+    forever @(posedge reset) begin
       @(posedge clk)
         for (index = 0; index < 235; index = index + 1)
         begin
+`ifdef ITER
+          @(posedge acceptout)
+`else
           @(posedge clk)
+`endif
             mode    <= 0;
             validin <= 1;
             datain  <= data_input[index];
             key     <= key_input[index];
+`ifdef ITER
+          @(negedge acceptout)
+            validin <= 0;
+`endif
         end
         for (index = 0; index < 10; index = index + 1)
         begin
@@ -103,11 +115,19 @@ module tb_des;
         end
         for (index = 235; index < 470; index = index + 1)
         begin
+`ifdef ITER
+          @(posedge acceptout)
+`else
           @(posedge clk)
+`endif
             mode    <= 1;
             validin <= 1;
             datain  <= data_input[index];
             key     <= key_input[index];
+`ifdef ITER
+          @(negedge acceptout)
+            validin <= 0;
+`endif
         end
         @(posedge clk)
           validin <= 0;
@@ -120,11 +140,21 @@ module tb_des;
 
     wait (reset)
 
+    acceptin <= 1;
+
     // encryption tests
+`ifdef ITER
+    @(posedge clk)
+`else
     @(posedge validout)
+`endif
     for(outdex = 0; outdex < 235; outdex = outdex + 1)
     begin
+`ifdef ITER
+      @(posedge validout)
+`else
       @(posedge clk)
+`endif
       // detected an error -> print error message
       // increment error counter
       if (dataout != data_output[outdex]) begin
@@ -142,10 +172,18 @@ module tb_des;
     end
 
     // decryption tests
+`ifdef ITER
+    @(posedge clk)
+`else
     @(posedge validout)
+`endif
     for(outdex = 235; outdex < 470; outdex = outdex + 1)
     begin
+`ifdef ITER
+      @(posedge validout)
+`else
       @(posedge clk)
+`endif
       // detected an error -> print error message
       // increment error counter
        if (dataout != data_output[outdex]) begin
@@ -183,8 +221,10 @@ module tb_des;
     .key_i(key),
     .data_i(datain),
     .valid_i(validin),
+    .accept_o(acceptout),
     .data_o(dataout),
-    .valid_o(validout)
+    .valid_o(validout),
+    .accept_i(acceptin)
   );
 
 
