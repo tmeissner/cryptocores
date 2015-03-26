@@ -47,6 +47,7 @@ wave_pipe : tb_des_pipe.vcd
 wave_iter : tb_des_iter.vcd
 	gtkwave -S tb_des.tcl tb_des_iter.vcd &
 
+.PHONY: clean
 clean :
 	echo "# cleaning simulation files"
 	rm -f tb_des_*
