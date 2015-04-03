@@ -20,37 +20,16 @@
 
 
 
-LIBRARY ieee;
-USE ieee.std_logic_1164.all;
-USE ieee.numeric_std.ALL;
+library ieee;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 
 
-PACKAGE des_pkg IS
+package des_pkg is
 
 
-  FUNCTION ip  ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector;
-  FUNCTION ipn ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector;
-
-  FUNCTION e (input_vector : std_logic_vector(0 TO 31) ) RETURN std_logic_vector;
-  FUNCTION p (input_vector : std_logic_vector(0 TO 31) ) RETURN std_logic_vector;
-
-  FUNCTION s1 (input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector;
-  FUNCTION s2 (input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector;
-  FUNCTION s3 (input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector;
-  FUNCTION s4 (input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector;
-  FUNCTION s5 (input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector;
-  FUNCTION s6 (input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector;
-  FUNCTION s7 (input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector;
-  FUNCTION s8 (input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector;
-
-  FUNCTION f (input_r : std_logic_vector(0 TO 31); input_key : std_logic_vector(0 TO 47) ) RETURN std_logic_vector;
-
-  FUNCTION pc1_c ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector;
-  FUNCTION pc1_d ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector;
-  FUNCTION pc2   ( input_vector : std_logic_vector(0 TO 55) ) RETURN std_logic_vector;
-
-  TYPE ip_matrix IS ARRAY (0 TO 63) OF natural RANGE 0 TO 63;
+  type ip_matrix is array (0 to 63) of natural range 0 to 63;
   constant ip_table : ip_matrix := (57, 49, 41, 33, 25, 17,  9, 1,
                                 59, 51, 43, 35, 27, 19, 11, 3,
                                 61, 53, 45, 37, 29, 21, 13, 5,
@@ -68,7 +47,7 @@ PACKAGE des_pkg IS
                                 33,  1, 41,  9, 49, 17, 57, 25,
                                 32,  0, 40,  8, 48, 16, 56, 24);
 
-  TYPE e_matrix IS ARRAY (0 TO 47) OF natural RANGE 0 TO 31;
+  type e_matrix is array (0 to 47) of natural range 0 to 31;
   constant e_table : e_matrix := (31,  0,  1,  2,  3,  4,
                                  3,  4,  5,  6,  7,  8,
                                  7,  8,  9, 10, 11, 12,
@@ -78,7 +57,7 @@ PACKAGE des_pkg IS
                                 23, 24, 25, 26, 27, 28,
                                 27, 28, 29, 30, 31,  0);
 
-  TYPE s_matrix IS ARRAY (0 TO 3, 0 TO 15) OF integer RANGE 0 TO 15;
+  type s_matrix is array (0 to 3, 0 to 15) of integer range 0 to 15;
   constant s1_table  : s_matrix := (0 => (14,  4, 13,  1,  2, 15, 11,  8,  3, 10,  6, 12,  5,  9,  0,  7),
                                     1 => ( 0, 15,  7,  4, 14,  2, 13,  1, 10,  6, 12, 11,  9,  5,  3,  8),
                                     2 => ( 4,  1, 14,  8, 13,  6,  2, 11, 15, 12,  9,  7,  3, 10,  5,  0),
@@ -112,7 +91,7 @@ PACKAGE des_pkg IS
                                     2 => ( 7, 11,  4,  1,  9, 12, 14,  2,  0,  6, 10, 13, 15,  3,  5,  8),
                                     3 => ( 2,  1, 14,  7,  4, 10,  8, 13, 15, 12,  9,  0,  3,  5,  6, 11));
 
-  type pc_matrix IS ARRAY (0 TO 27) OF natural RANGE 0 TO 63;
+  type pc_matrix is array (0 to 27) of natural range 0 to 63;
   constant pc1c_table : pc_matrix := (56, 48, 40, 32, 24, 16,  8,
                                  0, 57, 49, 41, 33, 25, 17,
                                  9,  1, 58, 50, 42, 34, 26,
@@ -122,7 +101,7 @@ PACKAGE des_pkg IS
                                 13,  5, 60, 52, 44, 36, 28,
                                 20, 12,  4, 27, 19, 11,  3);
 
-  type p_matrix IS ARRAY (0 TO 31) OF natural RANGE 0 TO 31;
+  type p_matrix is array (0 to 31) of natural range 0 to 31;
   constant p_table : p_matrix := (15,  6, 19, 20,
                                 28, 11, 27, 16,
                                  0, 14, 22, 25,
@@ -132,7 +111,7 @@ PACKAGE des_pkg IS
                                 18, 12, 29,  5,
                                 21, 10,  3, 24);
 
-  type pc2_matrix IS ARRAY (0 TO 47) OF natural RANGE 0 TO 63;
+  type pc2_matrix is array (0 to 47) of natural range 0 to 63;
   constant pc2_table : pc2_matrix := (13, 16, 10, 23,  0,  4,
                                  2, 27, 14,  5, 20,  9,
                                 22, 18, 11,  3, 25,  7,
@@ -142,191 +121,122 @@ PACKAGE des_pkg IS
                                 43, 48, 38, 55, 33, 52,
                                 45, 41, 49, 35, 28, 31);
 
+  function ip  ( input_vector : std_logic_vector(0 to 63) ) return std_logic_vector;
+  function ipn ( input_vector : std_logic_vector(0 to 63) ) return std_logic_vector;
 
-END PACKAGE des_pkg;
+  function e (input_vector : std_logic_vector(0 to 31) ) return std_logic_vector;
+  function p (input_vector : std_logic_vector(0 to 31) ) return std_logic_vector;
+
+  function s (input_vector : std_logic_vector(0 to 5); s_table : s_matrix ) return std_logic_vector;
+
+  function f (input_r : std_logic_vector(0 to 31); input_key : std_logic_vector(0 to 47) ) return std_logic_vector;
+
+  function pc1_c ( input_vector : std_logic_vector(0 to 63) ) return std_logic_vector;
+  function pc1_d ( input_vector : std_logic_vector(0 to 63) ) return std_logic_vector;
+  function pc2   ( input_vector : std_logic_vector(0 to 55) ) return std_logic_vector;
+
+
+end package des_pkg;
 
 
 
-PACKAGE BODY des_pkg IS
+package body des_pkg is
 
 
-  FUNCTION ip ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector IS
-    VARIABLE result : std_logic_vector(0 TO 63);
-  BEGIN
-    FOR index IN 0 TO 63 LOOP
+  function ip ( input_vector : std_logic_vector(0 to 63) ) return std_logic_vector is
+    variable result : std_logic_vector(0 to 63);
+  begin
+    for index IN 0 to 63 loop
       result( index ) := input_vector( ip_table( index ) );
-    END LOOP;
-    RETURN result;
-  END FUNCTION ip;
+    end loop;
+    return result;
+  end function ip;
 
-  FUNCTION ipn ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector IS
-    VARIABLE result : std_logic_vector(0 TO 63);
-  BEGIN
-    FOR index IN 0 TO 63 LOOP
+
+  function ipn ( input_vector : std_logic_vector(0 to 63) ) return std_logic_vector is
+    variable result : std_logic_vector(0 to 63);
+  begin
+    for index IN 0 to 63 loop
       result( index ) := input_vector( ipn_table( index ) );
-    END LOOP;
-    RETURN result;
-  END FUNCTION ipn;
+    end loop;
+    return result;
+  end function ipn;
 
-  FUNCTION e (input_vector : std_logic_vector(0 TO 31) ) RETURN std_logic_vector IS
-    VARIABLE result : std_logic_vector(0 TO 47);
-  BEGIN
-    FOR index IN 0 TO 47 LOOP
+
+  function e (input_vector : std_logic_vector(0 to 31) ) return std_logic_vector is
+    variable result : std_logic_vector(0 to 47);
+  begin
+    for index IN 0 to 47 loop
       result( index ) := input_vector( e_table( index ) );
-    END LOOP;
-    RETURN result;
-  END FUNCTION e;
+    end loop;
+    return result;
+  end function e;
 
-  FUNCTION s1 ( input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector IS
-    VARIABLE int : std_logic_vector(0 TO 1);
-    VARIABLE i : integer RANGE 0 TO 3;
-    VARIABLE j : integer RANGE 0 TO 15;
-    VARIABLE result : std_logic_vector(0 TO 3);
-  BEGIN
+
+  function s ( input_vector : std_logic_vector(0 to 5); s_table : s_matrix ) return std_logic_vector is
+    variable int : std_logic_vector(0 to 1);
+    variable i : integer range 0 to 3;
+    variable j : integer range 0 to 15;
+    variable result : std_logic_vector(0 to 3);
+  begin
     int := input_vector( 0 ) & input_vector( 5 );
     i := to_integer( unsigned( int ) );
-    j := to_integer( unsigned( input_vector( 1 TO 4) ) );
-    result := std_logic_vector( to_unsigned( s1_table( i, j ), 4 ) );
-    RETURN result;
-  END FUNCTION s1;
+    j := to_integer( unsigned( input_vector( 1 to 4) ) );
+    result := std_logic_vector( to_unsigned( s_table( i, j ), 4 ) );
+    return result;
+  end function s;
 
-  FUNCTION s2 ( input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector IS
-    VARIABLE int : std_logic_vector(0 TO 1);
-    VARIABLE i : integer RANGE 0 TO 3;
-    VARIABLE j : integer RANGE 0 TO 15;
-    VARIABLE result : std_logic_vector(0 TO 3);
-  BEGIN
-    int := input_vector( 0 ) & input_vector( 5 );
-    i := to_integer( unsigned( int ) );
-    j := to_integer( unsigned( input_vector( 1 TO 4) ) );
-    result := std_logic_vector( to_unsigned( s2_table( i, j ), 4 ) );
-    RETURN result;
-  END FUNCTION s2;
 
-  FUNCTION s3 ( input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector IS
-    VARIABLE int : std_logic_vector(0 TO 1);
-    VARIABLE i : integer RANGE 0 TO 3;
-    VARIABLE j : integer RANGE 0 TO 15;
-    VARIABLE result : std_logic_vector(0 TO 3);
-  BEGIN
-    int := input_vector( 0 ) & input_vector( 5 );
-    i := to_integer( unsigned( int ) );
-    j := to_integer( unsigned( input_vector( 1 TO 4) ) );
-    result := std_logic_vector( to_unsigned( s3_table( i, j ), 4 ) );
-    RETURN result;
-  END FUNCTION s3;
-
-  FUNCTION s4 ( input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector IS
-    VARIABLE int : std_logic_vector(0 TO 1);
-    VARIABLE i : integer RANGE 0 TO 3;
-    VARIABLE j : integer RANGE 0 TO 15;
-    VARIABLE result : std_logic_vector(0 TO 3);
-  BEGIN
-    int := input_vector( 0 ) & input_vector( 5 );
-    i := to_integer( unsigned( int ) );
-    j := to_integer( unsigned( input_vector( 1 TO 4) ) );
-    result := std_logic_vector( to_unsigned( s4_table( i, j ), 4 ) );
-    RETURN result;
-  END FUNCTION s4;
-
-  FUNCTION s5 ( input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector IS
-    VARIABLE int : std_logic_vector(0 TO 1);
-    VARIABLE i : integer RANGE 0 TO 3;
-    VARIABLE j : integer RANGE 0 TO 15;
-    VARIABLE result : std_logic_vector(0 TO 3);
-  BEGIN
-    int := input_vector( 0 ) & input_vector( 5 );
-    i := to_integer( unsigned( int ) );
-    j := to_integer( unsigned( input_vector( 1 TO 4) ) );
-    result := std_logic_vector( to_unsigned( s5_table( i, j ), 4 ) );
-    RETURN result;
-  END FUNCTION s5;
-
-  FUNCTION s6 ( input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector IS
-    VARIABLE int : std_logic_vector(0 TO 1);
-    VARIABLE i : integer RANGE 0 TO 3;
-    VARIABLE j : integer RANGE 0 TO 15;
-    VARIABLE result : std_logic_vector(0 TO 3);
-  BEGIN
-    int := input_vector( 0 ) & input_vector( 5 );
-    i := to_integer( unsigned( int ) );
-    j := to_integer( unsigned( input_vector( 1 TO 4) ) );
-    result := std_logic_vector( to_unsigned( s6_table( i, j ), 4 ) );
-    RETURN result;
-  END FUNCTION s6;
-
-  FUNCTION s7 ( input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector IS
-    VARIABLE int : std_logic_vector(0 TO 1);
-    VARIABLE i : integer RANGE 0 TO 3;
-    VARIABLE j : integer RANGE 0 TO 15;
-    VARIABLE result : std_logic_vector(0 TO 3);
-  BEGIN
-    int := input_vector( 0 ) & input_vector( 5 );
-    i := to_integer( unsigned( int ) );
-    j := to_integer( unsigned( input_vector( 1 TO 4) ) );
-    result := std_logic_vector( to_unsigned( s7_table( i, j ), 4 ) );
-    RETURN result;
-  END FUNCTION s7;
-
-  FUNCTION s8 ( input_vector : std_logic_vector(0 TO 5) ) RETURN std_logic_vector IS
-    VARIABLE int : std_logic_vector(0 TO 1);
-    VARIABLE i : integer RANGE 0 TO 3;
-    VARIABLE j : integer RANGE 0 TO 15;
-    VARIABLE result : std_logic_vector(0 TO 3);
-  BEGIN
-    int := input_vector( 0 ) & input_vector( 5 );
-    i := to_integer( unsigned( int ) );
-    j := to_integer( unsigned( input_vector( 1 TO 4) ) );
-    result := std_logic_vector( to_unsigned( s8_table( i, j ), 4 ) );
-    RETURN result;
-  END FUNCTION s8;
-
-  FUNCTION p (input_vector : std_logic_vector(0 TO 31) ) RETURN std_logic_vector IS
-    VARIABLE result : std_logic_vector(0 TO 31);
-  BEGIN
-    FOR index IN 0 TO 31 LOOP
+  function p (input_vector : std_logic_vector(0 to 31) ) return std_logic_vector is
+    variable result : std_logic_vector(0 to 31);
+  begin
+    for index IN 0 to 31 loop
       result( index ) := input_vector( p_table( index ) );
-    END LOOP;
-    RETURN result;
-  END FUNCTION p;
+    end loop;
+    return result;
+  end function p;
 
-  FUNCTION f (input_r : std_logic_vector(0 TO 31); input_key : std_logic_vector(0 TO 47) ) RETURN std_logic_vector IS
-    VARIABLE intern : std_logic_vector(0 TO 47);
-    VARIABLE result : std_logic_vector(0 TO 31);
-  BEGIN
+
+  function f (input_r : std_logic_vector(0 to 31); input_key : std_logic_vector(0 to 47) ) return std_logic_vector is
+    variable intern : std_logic_vector(0 to 47);
+    variable result : std_logic_vector(0 to 31);
+  begin
     intern := e( input_r ) xor input_key;
-    result := p( s1( intern(0 TO 5) ) & s2( intern(6 TO 11) ) & s3( intern(12 TO 17) ) & s4( intern(18 TO 23) ) &
-              s5( intern(24 TO 29) ) & s6( intern(30 TO 35) ) & s7( intern(36 TO 41) ) & s8( intern(42 TO 47) ) );
-    RETURN result;
-  END FUNCTION f;
+    result := p( s( intern(0 to 5), s1_table )   & s( intern(6 to 11), s2_table )  & s( intern(12 to 17), s3_table ) &
+                 s( intern(18 to 23), s4_table ) & s( intern(24 to 29), s5_table ) & s( intern(30 to 35), s6_table ) &
+                 s( intern(36 to 41), s7_table ) & s( intern(42 to 47), s8_table ) );
+    return result;
+  end function f;
 
-  FUNCTION pc1_c ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector IS
-    VARIABLE result : std_logic_vector(0 TO 27);
-  BEGIN
-    FOR index IN 0 TO 27 LOOP
+
+  function pc1_c ( input_vector : std_logic_vector(0 to 63) ) return std_logic_vector is
+    variable result : std_logic_vector(0 to 27);
+  begin
+    for index IN 0 to 27 loop
       result( index ) := input_vector( pc1c_table( index ) );
-    END LOOP;
-    RETURN result;
-  END FUNCTION pc1_c;
+    end loop;
+    return result;
+  end function pc1_c;
 
-  FUNCTION pc1_d ( input_vector : std_logic_vector(0 TO 63) ) RETURN std_logic_vector IS
 
-    VARIABLE result : std_logic_vector(0 TO 27);
-  BEGIN
-    FOR index IN 0 TO 27 LOOP
+  function pc1_d ( input_vector : std_logic_vector(0 to 63) ) return std_logic_vector is
+    variable result : std_logic_vector(0 to 27);
+  begin
+    for index IN 0 to 27 loop
       result( index ) := input_vector( pc1d_table( index ) );
-    END LOOP;
-    RETURN result;
-  END FUNCTION pc1_d;
+    end loop;
+    return result;
+  end function pc1_d;
 
-  FUNCTION pc2 ( input_vector : std_logic_vector(0 TO 55) ) RETURN std_logic_vector IS
-    VARIABLE result : std_logic_vector(0 TO 47);
-  BEGIN
-    FOR index IN 0 TO 47 LOOP
+
+  function pc2 ( input_vector : std_logic_vector(0 to 55) ) return std_logic_vector is
+    variable result : std_logic_vector(0 to 47);
+  begin
+    for index IN 0 to 47 loop
       result( index ) := input_vector( pc2_table( index ) );
-    END LOOP;
-    RETURN result;
-  END FUNCTION pc2;
+    end loop;
+    return result;
+  end function pc2;
 
 
-END PACKAGE BODY des_pkg;
+end package body des_pkg;
