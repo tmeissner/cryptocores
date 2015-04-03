@@ -20,6 +20,8 @@
 
 `timescale 1ns/1ps
 
+`define ITER
+
 
 module cbcmac_des (
   input         reset_i,
@@ -81,8 +83,10 @@ module cbcmac_des (
     .key_i(des_key),
     .data_i(des_datain),
     .valid_i(valid_i),
+    .accept_o(accept_o),
     .data_o(data_o),
-    .valid_o(valid_o)
+    .valid_o(valid_o),
+    .accept_i(accept_i)
   );
 
 
