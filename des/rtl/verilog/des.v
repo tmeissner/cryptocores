@@ -37,7 +37,7 @@ module des
   );
 
 
-`include "../../rtl/verilog/des_pkg.v"
+`include "../../../des/rtl/verilog/des_pkg.v"
 
 
   `ifdef PIPE

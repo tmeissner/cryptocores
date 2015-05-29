@@ -24,6 +24,7 @@ library ieee;
   use work.des_pkg.all;
 
 
+
 entity cbcmac_des is
   port (
     reset_i     : in  std_logic;                  -- low active async reset
@@ -32,12 +33,13 @@ entity cbcmac_des is
     key_i       : in  std_logic_vector(0 to 63);  -- key input
     data_i      : in  std_logic_vector(0 to 63);  -- data input
     valid_i     : in  std_logic;                  -- input key/data valid flag
-    accept_o    : out std_logic;
+    accept_o    : out std_logic;                  -- input accept
     data_o      : out std_logic_vector(0 tO 63);  -- data output
     valid_o     : out std_logic;                  -- output data valid flag
-    accept_i    : in  std_logic
+    accept_i    : in  std_logic                   -- output accept
   );
 end entity cbcmac_des;
+
 
 
 architecture rtl of cbcmac_des is
@@ -49,11 +51,11 @@ architecture rtl of cbcmac_des is
     );
     port (
       reset_i     : in  std_logic;
-      clk_i       : IN  std_logic;
-      mode_i      : IN  std_logic;
-      key_i       : IN  std_logic_vector(0 to 63);
-      data_i      : IN  std_logic_vector(0 to 63);
-      valid_i     : IN  std_logic;
+      clk_i       : in  std_logic;
+      mode_i      : in  std_logic;
+      key_i       : in  std_logic_vector(0 to 63);
+      data_i      : in  std_logic_vector(0 to 63);
+      valid_i     : in  std_logic;
       accept_o    : out std_logic;
       data_o      : out std_logic_vector(0 to 63);
       valid_o     : out std_logic;
@@ -76,12 +78,12 @@ architecture rtl of cbcmac_des is
 begin
 
 
-  s_des_datain <= C_IV xor data_i            when start_i = '1' else
-                  s_des_dataout_d xor data_i when start_i = '0';
+  s_des_datain <= C_IV xor data_i when start_i = '1' else
+                  s_des_dataout_d xor data_i;
 
-  data_o       <= s_des_dataout;
+  data_o <= s_des_dataout;
 
-  s_des_key    <= key_i when start_i = '1' else s_key;
+  s_des_key <= key_i when start_i = '1' else s_key;
 
   accept_o <= s_des_accept;
 
