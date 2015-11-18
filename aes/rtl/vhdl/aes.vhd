@@ -35,8 +35,10 @@ entity aes is
     key_i       : in  std_logic_vector(0 TO 127);  -- key input
     data_i      : in  std_logic_vector(0 TO 127);  -- data input
     valid_i     : in  std_logic;                   -- input key/data valid flag
+    accept_o    : out std_logic;
     data_o      : out std_logic_vector(0 TO 127);  -- data output
-    valid_o     : out std_logic                    -- output data valid flag
+    valid_o     : out std_logic;                   -- output data valid flag
+    accept_i    : in  std_logic
   );
 end entity aes;
 
@@ -45,7 +47,47 @@ end entity aes;
 architecture rtl of aes is
 
 
+  signal s_fsm_state : t_rounds;
+  signal s_aes_state : t_datatable2d;
+  signal s_accept : std_logic;
+  signal s_key_sched_done : boolean;
+
+
 begin
+
+
+  KeySchedP : process (reset_i, clk_i) is
+  begin
+
+  end process KeySchedP;
+
+
+  AesIter: process (reset_i, clk_i) is
+    variable v_mode      : std_logic;
+    variable v_round_cnt : t_rounds;
+    variable v_key       : t_key;
+  begin
+    if(reset_i = '0') then
+      s_accept    <= '1';
+      data_o      <= (others => '0');
+      valid_o     <= '0';
+      v_mode      := '0';
+      v_key       := (others => (others => '0'));
+      v_round_cnt := t_rounds'low;
+    elsif rising_edge(clk_i) then
+      FsmC : case s_fsm_state is
+
+        when 0 =>
+          if(s_accept = '1' and valid_i = '1') then
+            v_mode := mode_i;
+          end if;
+
+      end case FsmC;
+    end if;
+  end process AesIter;
+
+
+  accept_o <= s_accept;
 
 
 end architecture rtl;

@@ -18,21 +18,36 @@
 -- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 -- ======================================================================
 
+-- aes implementation
+-- key length: 128 bit -> Nk = 4
+-- data width: 128 bit -> Nb = 4
+-- round number Nr = 10
+
 
 library ieee;
-use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
+  use ieee.std_logic_1164.all;
+  use ieee.numeric_std.all;
 
 
 
 package aes_pkg is
 
 
+  -- constants for AES128
+  constant c_nk : natural := 4;   -- key size
+  constant c_nb : natural := 4;   -- number of bytes
+  constant c_nr : natural := 10;  -- number of rounds
+
+  subtype t_rounds is natural range 0 to c_nr + 1;
+  subtype t_key_rounds is natural range c_nk to c_nb * (c_nr + 1);
+
   type t_datatable1d is array (0 to 3) of std_logic_vector(7 downto 0);
   type t_datatable2d is array (0 to 3) of t_datatable1d;
 
   type t_stable1d is array (0 to 15) of std_logic_vector(7 downto 0);
   type t_stable2d is array (0 to 15) of t_stable1d;
+
+  type t_key is array (0 to 3) of std_logic_vector(31 downto 0);
 
   constant c_sbox : t_stable2d := (
     -- 0     1      2      3      4      5      6      7      8      9      A      B      C      D      E      F
@@ -85,7 +100,13 @@ package aes_pkg is
 
   function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector;
 
-  --function addroundkey (data : in std_logic_vector(127 downto 0), key )
+  function addroundkey (input : in t_datatable2d; key : in t_key) return t_datatable2d;
+
+  function subword (input : in t_datatable1d) return t_datatable1d;
+
+  function rotword (input : in t_datatable1d) return t_datatable1d;
+
+  function rcon (round : in t_rounds) return t_datatable1d;
 
 
 end package aes_pkg;
@@ -161,23 +182,27 @@ package body aes_pkg is
   -- algorithmus in c taken from http://www.samiam.org/galois.html and rewritten in vhdl
   function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector is
     variable v_a, v_b     : std_logic_vector(7 downto 0);
-    variable v_data       : std_logic_vector(7 downto 0) := (others => '0');
+    --variable v_data       : std_logic_vector(7 downto 0) := (others => '0');
     variable v_hi_bit_set : std_logic := '0';
+    variable v_data : unsigned(15 downto 0);
   begin
-    v_a := a;
-    v_b := b;
-    for index in 0 to 7 loop
-      if(v_b(0) = '1') then
-        v_data := v_data xor v_a;
-      end if;
-      v_hi_bit_set := a(7);
-      v_a          := v_a(6 downto 0) & '0';
-      if(v_hi_bit_set = '1') then
-        v_a := v_a xor x"01";
-      end if;
-      v_b := '0' & v_b(7 downto 1);
-    end loop;
-    return v_data;
+    --v_a := a;
+    --v_b := b;
+    --for index in 0 to 7 loop
+    --  if(v_b(0) = '1') then
+    --    v_data := v_data xor v_a;
+    --  end if;
+    --  v_hi_bit_set := a(7);
+    --  v_a          := v_a(6 downto 0) & '0';
+    --  if(v_hi_bit_set = '1') then
+    --    v_a := v_a xor x"01";
+    --  end if;
+    --  v_b := '0' & v_b(7 downto 1);
+    --end loop;
+    --return v_data;
+    v_data := unsigned(a) * unsigned(b);
+    return std_logic_vector(v_data(7 downto 0));
+    --return std_logic_vector((unsigned(a) * unsigned(b)) (7 downto 0));  -- mod a'length);
   end function gmul;
 
 
@@ -193,6 +218,44 @@ package body aes_pkg is
     end loop;
     return v_data;
   end function mixcolumns;
+
+
+  function addroundkey (input : in t_datatable2d; key : in t_key) return t_datatable2d is
+    variable v_data : t_datatable2d;
+    variable v_key  : t_datatable1d;
+  begin
+    for i in 0 to 2 loop
+      v_key := (key(i)(7 downto 0), key(i)(15 downto 8), key(i)(23 downto 16), key(i)(31 downto 24));
+      for j in 0 to 3 loop
+        v_data(i)(j) := input(i)(j) xor v_key(j);
+      end loop;
+    end loop;
+    return v_data;
+  end function addroundkey;
+
+
+  function subword (input : in t_datatable1d) return t_datatable1d is
+    variable v_data : t_datatable1d;
+  begin
+    for i in 0 to 3 loop
+      v_data(i) := c_sbox(to_integer(unsigned(input(i)(7 downto 4))))(to_integer(unsigned(input(i)(3 downto 0))));
+    end loop;
+    return v_data;
+  end function subword;
+
+
+  function rotword (input : in t_datatable1d) return t_datatable1d is
+  begin
+    return(input(2), input(1), input(0), input(3));
+  end function rotword;
+
+
+  function rcon (round : in t_rounds) return t_datatable1d is
+    variable v_data : std_logic_vector(15 downto 0);
+  begin
+    v_data := std_logic_vector(to_unsigned(2**(round-1), 15));
+    return(v_data(7 downto 0), x"00", x"00", x"00");
+  end function rcon;
 
 
 end package body aes_pkg;

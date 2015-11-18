@@ -42,8 +42,10 @@ architecture rtl of tb_aes is
   signal s_key      : std_logic_vector(0 to 127) := (others => '0');
   signal s_datain   : std_logic_vector(0 to 127) := (others => '0');
   signal s_validin  : std_logic := '0';
+  signal s_acceptout : std_logic;
   signal s_dataout  : std_logic_vector(0 to 127);
   signal s_validout : std_logic;
+  signal s_acceptin : std_logic;
 
 
   component aes is
@@ -54,8 +56,10 @@ architecture rtl of tb_aes is
       key_i       : in  std_logic_vector(0 TO 127);
       data_i      : in  std_logic_vector(0 TO 127);
       valid_i     : in  std_logic;
+      accept_o    : out std_logic;
       data_o      : out std_logic_vector(0 TO 127);
-      valid_o     : out std_logic
+      valid_o     : out std_logic;
+      accept_i    : in  std_logic
     );
   end component aes;
 
@@ -162,8 +166,10 @@ begin
     key_i    => s_key,
     data_i   => s_datain,
     valid_i  => s_validin,
+    accept_o => s_acceptout,
     data_o   => s_dataout,
-    valid_o  => s_validout
+    valid_o  => s_validout,
+    accept_i => s_acceptin
   );
 
 
