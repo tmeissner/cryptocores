@@ -178,31 +178,29 @@ package body aes_pkg is
   end function invshiftrow;
 
 
-  -- trivial algorithmus to multiply two bytes in the 8 bit galois field
-  -- algorithmus in c taken from http://www.samiam.org/galois.html and rewritten in vhdl
+  -- trivial algorithmus to multiply two bytes in the GF(2^8) finite field defined
+  -- by the polynomial x^8 + x^4 + x^3 + x + 1
+  -- taken from http://www.codeplanet.eu/tutorials/cpp/51-advanced-encryption-standard.html
+  -- and ported to vhdl
   function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector is
     variable v_a, v_b     : std_logic_vector(7 downto 0);
-    --variable v_data       : std_logic_vector(7 downto 0) := (others => '0');
-    variable v_hi_bit_set : std_logic := '0';
-    variable v_data : unsigned(15 downto 0);
+    variable v_data       : std_logic_vector(7 downto 0) := (others => '0');
+    variable v_hi_bit_set : boolean;
   begin
-    --v_a := a;
-    --v_b := b;
-    --for index in 0 to 7 loop
-    --  if(v_b(0) = '1') then
-    --    v_data := v_data xor v_a;
-    --  end if;
-    --  v_hi_bit_set := a(7);
-    --  v_a          := v_a(6 downto 0) & '0';
-    --  if(v_hi_bit_set = '1') then
-    --    v_a := v_a xor x"01";
-    --  end if;
-    --  v_b := '0' & v_b(7 downto 1);
-    --end loop;
-    --return v_data;
-    v_data := unsigned(a) * unsigned(b);
-    return std_logic_vector(v_data(7 downto 0));
-    --return std_logic_vector((unsigned(a) * unsigned(b)) (7 downto 0));  -- mod a'length);
+    v_a := a;
+    v_b := b;
+    for index in 0 to 7 loop
+      if(v_b(0) = '1') then
+        v_data := v_data xor v_a;
+      end if;
+      v_hi_bit_set := v_a(7) = '1';
+      v_a          := v_a(6 downto 0) & '0';
+      if (v_hi_bit_set) then
+        v_a := v_a xor x"1B";
+      end if;
+      v_b := '0' & v_b(7 downto 1);
+    end loop;
+    return v_data;
   end function gmul;
 
 
@@ -211,13 +209,27 @@ package body aes_pkg is
     variable v_data : t_datatable2d;
   begin
     for index in 0 to 3 loop
-      v_data(index)(0) := gmul(x"02",input(index)(0)) xor gmul(x"03",input(index)(1)) xor input(index)(2) xor input(index)(3);
-      v_data(index)(1) := input(index)(0) xor gmul(x"02",input(index)(1)) xor gmul(x"03",input(index)(2))  xor input(index)(3);
+      v_data(index)(0) := gmul(x"02", input(index)(0)) xor gmul(x"03", input(index)(1)) xor input(index)(2) xor input(index)(3);
+      v_data(index)(1) := input(index)(0) xor gmul(x"02", input(index)(1)) xor gmul(x"03",input(index)(2))  xor input(index)(3);
       v_data(index)(2) := input(index)(0) xor input(index)(1) xor gmul(x"02",input(index)(2))  xor gmul(x"03",input(index)(3));
       v_data(index)(3) := gmul(x"03", input(index)(0)) xor input(index)(1) xor input(index)(2) xor gmul(x"02",input(index)(3));
     end loop;
     return v_data;
   end function mixcolumns;
+
+
+  -- matrix columns manipulation
+  function invmixcolumns (input : t_datatable2d; column : natural) return t_datatable2d is
+    variable v_data : t_datatable2d;
+  begin
+    for index in 0 to 3 loop
+      v_data(index)(0) := gmul(x"0E", input(index)(0)) xor gmul(x"0B", input(index)(1)) xor gmul(x"0D", input(index)(2)) xor gmul(x"09", input(index)(3));
+      v_data(index)(1) := gmul(x"09", input(index)(0)) xor gmul(x"0E", input(index)(1)) xor gmul(x"0B", input(index)(2)) xor gmul(x"0D", input(index)(3));
+      v_data(index)(2) := gmul(x"0D", input(index)(0)) xor gmul(x"09", input(index)(1)) xor gmul(x"0E", input(index)(2)) xor gmul(x"0B", input(index)(3));
+      v_data(index)(3) := gmul(x"0B", input(index)(0)) xor gmul(x"0D", input(index)(1)) xor gmul(x"09", input(index)(2)) xor gmul(x"0E", input(index)(3));
+    end loop;
+    return v_data;
+  end function invmixcolumns;
 
 
   function addroundkey (input : in t_datatable2d; key : in t_key) return t_datatable2d is
