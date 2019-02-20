@@ -24,8 +24,8 @@ all : sim wave
 sim : tb_aes.ghw
 
 compile : ../../rtl/vhdl/*.vhd tb_aes.vhd
-	ghdl -a ../../rtl/vhdl/aes_pkg.vhd ../../rtl/vhdl/aes.vhd tb_aes.vhd
-	ghdl -e tb_aes
+	ghdl -a --std=08 ../../rtl/vhdl/aes_pkg.vhd ../../rtl/vhdl/aes.vhd tb_aes.vhd
+	ghdl -e --std=08 tb_aes
 
 tb_aes.ghw : compile
 	ghdl -r tb_aes --wave=tb_aes.ghw --assert-level=error --stop-time=10us

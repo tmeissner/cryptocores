@@ -48,6 +48,8 @@ package aes_pkg is
   type t_stable2d is array (0 to 15) of t_stable1d;
 
   type t_key is array (0 to 3) of std_logic_vector(31 downto 0);
+  
+  type t_rcon is array (0 to 9) of t_datatable1d;
 
   constant c_sbox : t_stable2d := (
     -- 0     1      2      3      4      5      6      7      8      9      A      B      C      D      E      F
@@ -87,6 +89,18 @@ package aes_pkg is
     (x"a0", x"e0", x"3b", x"4d", x"ae", x"2a", x"f5", x"b0", x"c8", x"eb", x"bb", x"3c", x"83", x"53", x"99", x"61"), -- E
     (x"17", x"2b", x"04", x"7e", x"ba", x"77", x"d6", x"26", x"e1", x"69", x"14", x"63", x"55", x"21", x"0c", x"7d"));-- F
 
+  constant c_rcon : t_rcon := (
+    (x"01", x"00", x"00", x"00"),
+    (x"02", x"00", x"00", x"00"),
+    (x"04", x"00", x"00", x"00"),
+    (x"08", x"00", x"00", x"00"),
+    (x"10", x"00", x"00", x"00"),
+    (x"20", x"00", x"00", x"00"),
+    (x"40", x"00", x"00", x"00"),
+    (x"80", x"00", x"00", x"00"),
+    (x"1B", x"00", x"00", x"00"),
+    (x"36", x"00", x"00", x"00"));
+
 
   function bytesub    (input : std_logic_vector(7 downto 0)) return std_logic_vector;
   function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector;
@@ -95,6 +109,7 @@ package aes_pkg is
   function invshiftrow (input : t_datatable2d) return t_datatable2d;
 
   function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d;
+  function invmixcolumns (input : t_datatable2d; column : natural) return t_datatable2d;
 
   function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
 
@@ -105,8 +120,6 @@ package aes_pkg is
   function subword (input : in t_datatable1d) return t_datatable1d;
 
   function rotword (input : in t_datatable1d) return t_datatable1d;
-
-  function rcon (round : in t_rounds) return t_datatable1d;
 
 
 end package aes_pkg;
@@ -236,7 +249,7 @@ package body aes_pkg is
     variable v_data : t_datatable2d;
     variable v_key  : t_datatable1d;
   begin
-    for i in 0 to 2 loop
+    for i in 0 to 3 loop
       v_key := (key(i)(7 downto 0), key(i)(15 downto 8), key(i)(23 downto 16), key(i)(31 downto 24));
       for j in 0 to 3 loop
         v_data(i)(j) := input(i)(j) xor v_key(j);
@@ -260,14 +273,6 @@ package body aes_pkg is
   begin
     return(input(2), input(1), input(0), input(3));
   end function rotword;
-
-
-  function rcon (round : in t_rounds) return t_datatable1d is
-    variable v_data : std_logic_vector(15 downto 0);
-  begin
-    v_data := std_logic_vector(to_unsigned(2**(round-1), 15));
-    return(v_data(7 downto 0), x"00", x"00", x"00");
-  end function rcon;
 
 
 end package body aes_pkg;
