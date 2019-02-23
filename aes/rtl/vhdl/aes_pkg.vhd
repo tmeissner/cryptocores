@@ -48,7 +48,7 @@ package aes_pkg is
   type t_stable2d is array (0 to 15) of t_stable1d;
 
   type t_key is array (0 to 3) of std_logic_vector(31 downto 0);
-  
+
   type t_rcon is array (0 to 9) of t_datatable1d;
 
   constant c_sbox : t_stable2d := (
@@ -101,15 +101,20 @@ package aes_pkg is
     (x"1B", x"00", x"00", x"00"),
     (x"36", x"00", x"00", x"00"));
 
+  type t_mode is (ENCRYPT, DECRYPT);
+
 
   function bytesub    (input : std_logic_vector(7 downto 0)) return std_logic_vector;
   function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector;
 
+  function subbytes (input : in t_datatable2d) return t_datatable2d;
+  function invsubbytes (input : in t_datatable2d) return t_datatable2d;
+
   function shiftrow    (input : t_datatable2d) return t_datatable2d;
   function invshiftrow (input : t_datatable2d) return t_datatable2d;
 
-  function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d;
-  function invmixcolumns (input : t_datatable2d; column : natural) return t_datatable2d;
+  function mixcolumns (input : t_datatable2d) return t_datatable2d;
+  function invmixcolumns (input : t_datatable2d) return t_datatable2d;
 
   function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
 
@@ -120,6 +125,12 @@ package aes_pkg is
   function subword (input : in t_datatable1d) return t_datatable1d;
 
   function rotword (input : in t_datatable1d) return t_datatable1d;
+
+  function set_state (input : in std_logic_vector(0 to 127)) return t_datatable2d;
+
+  function get_state (input : in t_datatable2d) return std_logic_vector;
+
+  function to_string(input : t_datatable2d) return string;
 
 
 end package aes_pkg;
@@ -153,20 +164,50 @@ package body aes_pkg is
   end function invbytesub;
 
 
+  function subbytes (input : in t_datatable2d) return t_datatable2d is
+    variable v_data : t_datatable2d;
+  begin
+    for column in 0 to 3 loop
+      for row in 0 to 3 loop
+        v_data(row)(column) := c_sbox(to_integer(unsigned(input(row)(column)(7 downto 4))))(to_integer(unsigned(input(row)(column)(3 downto 0))));
+      end loop;
+    end loop;
+    return v_data;
+  end function subbytes;
+
+
+  function invsubbytes (input : in t_datatable2d) return t_datatable2d is
+    variable v_data : t_datatable2d;
+  begin
+    for column in 0 to 3 loop
+      for row in 0 to 3 loop
+        v_data(row)(column) := c_sbox_invers(to_integer(unsigned(input(row)(column)(7 downto 4))))(to_integer(unsigned(input(row)(column)(3 downto 0))));
+      end loop;
+    end loop;
+    return v_data;
+  end function invsubbytes;
+
+
   function shiftrow (input : t_datatable2d) return t_datatable2d is
     variable v_datamatrix : t_datatable2d;
   begin
     -- copy input in internal matrix
     v_datamatrix := input;
     -- 2nd row
-    v_datamatrix(1)(1) := input(1)(0);
-    v_datamatrix(1)(2) := input(1)(1);
-    v_datamatrix(1)(3) := input(1)(2);
+    v_datamatrix(1)(0) := input(1)(1);
+    v_datamatrix(1)(1) := input(1)(2);
+    v_datamatrix(1)(2) := input(1)(3);
+    v_datamatrix(1)(3) := input(1)(0);
     -- 3rd row
+    v_datamatrix(2)(0) := input(2)(2);
+    v_datamatrix(2)(1) := input(2)(3);
     v_datamatrix(2)(2) := input(2)(0);
     v_datamatrix(2)(3) := input(2)(1);
     -- 4rd row
-    v_datamatrix(3)(3) := input(3)(0);
+    v_datamatrix(3)(0) := input(3)(3);
+    v_datamatrix(3)(1) := input(3)(0);
+    v_datamatrix(3)(2) := input(3)(1);
+    v_datamatrix(3)(3) := input(3)(2);
     -- return manipulated internal matrix
     return v_datamatrix;
   end function shiftrow;
@@ -178,14 +219,20 @@ package body aes_pkg is
     -- copy input in internal matrix
     v_datamatrix := input;
     -- 2nd row
-    v_datamatrix(1)(0) := input(1)(1);
-    v_datamatrix(1)(1) := input(1)(2);
-    v_datamatrix(1)(2) := input(1)(3);
+    v_datamatrix(1)(0) := input(1)(3);
+    v_datamatrix(1)(1) := input(1)(0);
+    v_datamatrix(1)(2) := input(1)(1);
+    v_datamatrix(1)(3) := input(1)(2);
     -- 3rd row
     v_datamatrix(2)(0) := input(2)(2);
     v_datamatrix(2)(1) := input(2)(3);
+    v_datamatrix(2)(2) := input(2)(0);
+    v_datamatrix(2)(3) := input(2)(1);
     -- 4rd row
-    v_datamatrix(3)(0) := input(3)(3);
+    v_datamatrix(3)(0) := input(3)(1);
+    v_datamatrix(3)(1) := input(3)(2);
+    v_datamatrix(3)(2) := input(3)(3);
+    v_datamatrix(3)(3) := input(3)(0);
     -- return manipulated internal matrix
     return v_datamatrix;
   end function invshiftrow;
@@ -218,28 +265,28 @@ package body aes_pkg is
 
 
   -- matrix columns manipulation
-  function mixcolumns (input : t_datatable2d; column : natural) return t_datatable2d is
+  function mixcolumns (input : t_datatable2d) return t_datatable2d is
     variable v_data : t_datatable2d;
   begin
-    for index in 0 to 3 loop
-      v_data(index)(0) := gmul(x"02", input(index)(0)) xor gmul(x"03", input(index)(1)) xor input(index)(2) xor input(index)(3);
-      v_data(index)(1) := input(index)(0) xor gmul(x"02", input(index)(1)) xor gmul(x"03",input(index)(2))  xor input(index)(3);
-      v_data(index)(2) := input(index)(0) xor input(index)(1) xor gmul(x"02",input(index)(2))  xor gmul(x"03",input(index)(3));
-      v_data(index)(3) := gmul(x"03", input(index)(0)) xor input(index)(1) xor input(index)(2) xor gmul(x"02",input(index)(3));
+    for column in 0 to 3 loop
+      v_data(0)(column) := gmul(x"02", input(0)(column)) xor gmul(x"03", input(1)(column)) xor input(2)(column) xor input(3)(column);
+      v_data(1)(column) := input(0)(column) xor gmul(x"02", input(1)(column)) xor gmul(x"03",input(2)(column))  xor input(3)(column);
+      v_data(2)(column) := input(0)(column) xor input(1)(column) xor gmul(x"02",input(2)(column))  xor gmul(x"03",input(3)(column));
+      v_data(3)(column) := gmul(x"03", input(0)(column)) xor input(1)(column) xor input(2)(column) xor gmul(x"02",input(3)(column));
     end loop;
     return v_data;
   end function mixcolumns;
 
 
   -- matrix columns manipulation
-  function invmixcolumns (input : t_datatable2d; column : natural) return t_datatable2d is
+  function invmixcolumns (input : t_datatable2d) return t_datatable2d is
     variable v_data : t_datatable2d;
   begin
-    for index in 0 to 3 loop
-      v_data(index)(0) := gmul(x"0E", input(index)(0)) xor gmul(x"0B", input(index)(1)) xor gmul(x"0D", input(index)(2)) xor gmul(x"09", input(index)(3));
-      v_data(index)(1) := gmul(x"09", input(index)(0)) xor gmul(x"0E", input(index)(1)) xor gmul(x"0B", input(index)(2)) xor gmul(x"0D", input(index)(3));
-      v_data(index)(2) := gmul(x"0D", input(index)(0)) xor gmul(x"09", input(index)(1)) xor gmul(x"0E", input(index)(2)) xor gmul(x"0B", input(index)(3));
-      v_data(index)(3) := gmul(x"0B", input(index)(0)) xor gmul(x"0D", input(index)(1)) xor gmul(x"09", input(index)(2)) xor gmul(x"0E", input(index)(3));
+    for column in 0 to 3 loop
+      v_data(0)(column) := gmul(x"0E", input(0)(column)) xor gmul(x"0B", input(1)(column)) xor gmul(x"0D", input(2)(column)) xor gmul(x"09", input(3)(column));
+      v_data(1)(column) := gmul(x"09", input(0)(column)) xor gmul(x"0E", input(1)(column)) xor gmul(x"0B", input(2)(column)) xor gmul(x"0D", input(3)(column));
+      v_data(2)(column) := gmul(x"0D", input(0)(column)) xor gmul(x"09", input(1)(column)) xor gmul(x"0E", input(2)(column)) xor gmul(x"0B", input(3)(column));
+      v_data(3)(column) := gmul(x"0B", input(0)(column)) xor gmul(x"0D", input(1)(column)) xor gmul(x"09", input(2)(column)) xor gmul(x"0E", input(3)(column));
     end loop;
     return v_data;
   end function invmixcolumns;
@@ -249,10 +296,10 @@ package body aes_pkg is
     variable v_data : t_datatable2d;
     variable v_key  : t_datatable1d;
   begin
-    for i in 0 to 3 loop
-      v_key := (key(i)(7 downto 0), key(i)(15 downto 8), key(i)(23 downto 16), key(i)(31 downto 24));
-      for j in 0 to 3 loop
-        v_data(i)(j) := input(i)(j) xor v_key(j);
+    for column in 0 to 3 loop
+      v_key := (key(column)(31 downto 24), key(column)(23 downto 16), key(column)(15 downto 8), key(column)(7 downto 0));
+      for row in 0 to 3 loop
+        v_data(row)(column) := input(row)(column) xor v_key(row);
       end loop;
     end loop;
     return v_data;
@@ -273,6 +320,37 @@ package body aes_pkg is
   begin
     return(input(2), input(1), input(0), input(3));
   end function rotword;
+
+
+  function set_state (input : in std_logic_vector(0 to 127)) return t_datatable2d is
+    variable v_data : t_datatable2d;
+  begin
+    for column in 0 to 3 loop
+      for row in 0 to 3 loop
+        v_data(row)(column) := input(row*8+column*32 to row*8+column*32+7);
+      end loop;
+    end loop;
+    return v_data;
+  end function set_state;
+
+
+  function get_state (input : in t_datatable2d) return std_logic_vector is
+  begin
+    return input(0)(0) & input(1)(0) & input(2)(0) & input(3)(0) &
+           input(0)(1) & input(1)(1) & input(2)(1) & input(3)(1) &
+           input(0)(2) & input(1)(2) & input(2)(2) & input(3)(2) &
+           input(0)(3) & input(1)(3) & input(2)(3) & input(3)(3);
+  end function get_state;
+
+
+  function to_string(input : t_datatable2d) return string is
+  begin
+    return '(' & to_hstring(input(0)(0)) & ',' & to_hstring(input(0)(1)) & ',' & to_hstring(input(0)(2)) & ',' & to_hstring(input(0)(3)) & ')' & LF &
+           '(' & to_hstring(input(1)(0)) & ',' & to_hstring(input(1)(1)) & ',' & to_hstring(input(1)(2)) & ',' & to_hstring(input(1)(3)) & ')' & LF &
+           '(' & to_hstring(input(2)(0)) & ',' & to_hstring(input(2)(1)) & ',' & to_hstring(input(2)(2)) & ',' & to_hstring(input(2)(3)) & ')' & LF &
+           '(' & to_hstring(input(3)(0)) & ',' & to_hstring(input(3)(1)) & ',' & to_hstring(input(3)(2)) & ',' & to_hstring(input(3)(3)) & ')';
+  end function to_string;
+
 
 
 end package body aes_pkg;
