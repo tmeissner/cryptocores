@@ -33,6 +33,43 @@ library ieee;
 package aes_pkg is
 
 
+  -- components
+  component aes_enc is
+    generic (
+      design_type : string := "ITER"
+    );
+    port (
+      reset_i     : in  std_logic;
+      clk_i       : in  std_logic;
+      key_i       : in  std_logic_vector(0 to 127);
+      data_i      : in  std_logic_vector(0 to 127);
+      valid_i     : in  std_logic;
+      accept_o    : out std_logic;
+      data_o      : out std_logic_vector(0 to 127);
+      valid_o     : out std_logic;
+      accept_i    : in  std_logic
+    );
+  end component aes_enc;
+
+
+  component aes_dec is
+    generic (
+      design_type : string := "ITER"
+    );
+    port (
+      reset_i     : in  std_logic;
+      clk_i       : in  std_logic;
+      key_i       : in  std_logic_vector(0 to 127);
+      data_i      : in  std_logic_vector(0 to 127);
+      valid_i     : in  std_logic;
+      accept_o    : out std_logic;
+      data_o      : out std_logic_vector(0 to 127);
+      valid_o     : out std_logic;
+      accept_i    : in  std_logic
+    );
+  end component aes_dec;
+
+
   -- constants for AES128
   constant c_nk : natural := 4;   -- key size
   constant c_nb : natural := 4;   -- number of bytes
@@ -318,7 +355,7 @@ package body aes_pkg is
 
   function rotword (input : in t_datatable1d) return t_datatable1d is
   begin
-    return(input(2), input(1), input(0), input(3));
+    return(input(1), input(2), input(3), input(0));
   end function rotword;
 
 

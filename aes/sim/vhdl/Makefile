@@ -19,12 +19,12 @@
 # ======================================================================
 
 
-all : sim wave
+all : sim
 
 sim : tb_aes.ghw
 
 compile : ../../rtl/vhdl/*.vhd tb_aes.vhd
-	ghdl -a --std=08 ../../rtl/vhdl/aes_pkg.vhd ../../rtl/vhdl/aes.vhd tb_aes.vhd
+	ghdl -a --std=08 ../../rtl/vhdl/aes_pkg.vhd ../../rtl/vhdl/aes.vhd ../../rtl/vhdl/aes_enc.vhd ../../rtl/vhdl/aes_dec.vhd tb_aes.vhd
 	ghdl -e --std=08 tb_aes
 
 tb_aes.ghw : compile

@@ -53,12 +53,7 @@ architecture rtl of aes is
 begin
 
 
-  PipeG : if design_type = "PIPE" generate
 
-  begin
-
-
-  end generate PipeG;
 
 
 end architecture rtl;

@@ -38,32 +38,21 @@ end entity tb_aes;
 architecture rtl of tb_aes is
 
 
-  signal s_reset    : std_logic := '0';
-  signal s_clk      : std_logic := '0';
-  signal s_mode     : std_logic := '0';
-  signal s_key      : std_logic_vector(0 to 127) := (others => '0');
-  signal s_datain   : std_logic_vector(0 to 127) := (others => '0');
-  signal s_validin  : std_logic := '0';
-  signal s_acceptout : std_logic;
-  signal s_dataout  : std_logic_vector(0 to 127);
-  signal s_validout : std_logic;
-  signal s_acceptin : std_logic;
-
-
-  component aes is
-    port (
-      reset_i     : in  std_logic;
-      clk_i       : in  std_logic;
-      mode_i      : in  std_logic;
-      key_i       : in  std_logic_vector(0 TO 127);
-      data_i      : in  std_logic_vector(0 TO 127);
-      valid_i     : in  std_logic;
-      accept_o    : out std_logic;
-      data_o      : out std_logic_vector(0 TO 127);
-      valid_o     : out std_logic;
-      accept_i    : in  std_logic
-    );
-  end component aes;
+  signal s_reset         : std_logic := '0';
+  signal s_clk           : std_logic := '0';
+  signal s_mode          : std_logic := '0';
+  signal s_key           : std_logic_vector(0 to 127) := (others => '0');
+  signal s_datain        : std_logic_vector(0 to 127) := (others => '0');
+  signal s_validin_enc   : std_logic := '0';
+  signal s_acceptout_enc : std_logic;
+  signal s_dataout_enc   : std_logic_vector(0 to 127);
+  signal s_validout_enc  : std_logic;
+  signal s_acceptin_enc  : std_logic := '0';
+  signal s_validin_dec   : std_logic := '0';
+  signal s_acceptout_dec : std_logic;
+  signal s_dataout_dec   : std_logic_vector(0 to 127);
+  signal s_validout_dec  : std_logic;
+  signal s_acceptin_dec  : std_logic := '0';
 
 
 begin
@@ -73,19 +62,66 @@ begin
   s_reset <= '1' after 100 ns;
 
 
-  i_aes : aes
+  i_aes_enc : aes_enc
   port map (
     reset_i  => s_reset,
     clk_i    => s_clk,
-    mode_i   => s_mode,
     key_i    => s_key,
     data_i   => s_datain,
-    valid_i  => s_validin,
-    accept_o => s_acceptout,
-    data_o   => s_dataout,
-    valid_o  => s_validout,
-    accept_i => s_acceptin
+    valid_i  => s_validin_enc,
+    accept_o => s_acceptout_enc,
+    data_o   => s_dataout_enc,
+    valid_o  => s_validout_enc,
+    accept_i => s_acceptin_enc
   );
+
+
+  i_aes_dec : aes_dec
+  port map (
+    reset_i  => s_reset,
+    clk_i    => s_clk,
+    key_i    => s_key,
+    data_i   => s_datain,
+    valid_i  => s_validin_dec,
+    accept_o => s_acceptout_dec,
+    data_o   => s_dataout_dec,
+    valid_o  => s_validout_dec,
+    accept_i => s_acceptin_dec
+  );
+
+
+  process is
+  begin
+    wait until s_reset = '1';
+    -- ENCRYPTION TEST
+    wait until rising_edge(s_clk);
+    s_validin_enc <= '1';
+    s_datain <= x"3243f6a8885a308d313198a2e0370734";
+    wait until s_acceptout_enc = '1' and rising_edge(s_clk);
+    s_validin_enc <= '0';
+    wait until s_validout_enc = '1' and rising_edge(s_clk);
+    s_acceptin_enc <= '1';
+    assert s_dataout_enc = x"3925841D02DC09FBDC118597196A0B32"
+      report "Encryption error"
+      severity failure;
+    s_datain <= s_dataout_enc;
+    wait until rising_edge(s_clk);
+    s_acceptin_enc <= '0';
+    -- DECRYPTION TEST
+    wait until rising_edge(s_clk);
+    s_validin_dec <= '1';
+    wait until s_acceptout_dec = '1' and rising_edge(s_clk);
+    s_validin_dec <= '0';
+    wait until s_validout_dec = '1' and rising_edge(s_clk);
+    s_acceptin_dec <= '1';
+    assert s_dataout_dec = x"3243f6a8885a308d313198a2e0370734"
+      report "Decryption error"
+      severity failure;
+    wait until rising_edge(s_clk);
+    s_acceptin_dec <= '0';
+    wait for 100 ns;
+    finish(0);
+  end process;
 
 
 end architecture rtl;
