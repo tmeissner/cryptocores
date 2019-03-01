@@ -1,7 +1,6 @@
 # ======================================================================
 # AES encryption/decryption
-# algorithm according to FIPS 197 specification
-# Copyright (C) 2011 Torsten Meissner
+# Copyright (C) 2019 Torsten Meissner
 #-----------------------------------------------------------------------
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,23 +18,45 @@
 # ======================================================================
 
 
-all : sim
+RTL_SRC := \
+  ../../rtl/vhdl/aes_pkg.vhd \
+  ../../rtl/vhdl/aes.vhd     \
+  ../../rtl/vhdl/aes_enc.vhd \
+  ../../rtl/vhdl/aes_dec.vhd
 
-sim : tb_aes.ghw
+SIM_SRC := \
+  tb_aes.vhd
 
-compile : ../../rtl/vhdl/*.vhd tb_aes.vhd
-	ghdl -a --std=08 ../../rtl/vhdl/aes_pkg.vhd ../../rtl/vhdl/aes.vhd ../../rtl/vhdl/aes_enc.vhd ../../rtl/vhdl/aes_dec.vhd tb_aes.vhd
-	ghdl -e --std=08 tb_aes
 
-tb_aes.ghw : compile
-	ghdl -r tb_aes --wave=tb_aes.ghw --assert-level=error --stop-time=10us
+.PHONY: sim
+sim: tb_aes.ghw
 
-wave : tb_aes.ghw
+
+.PHONY: compile
+compile: tb_aes
+
+
+tb_aes: ${RTL_SRC} ${SIM_SRC}
+	ghdl -a --std=08 -fpsl ${RTL_SRC} ${SIM_SRC}
+	ghdl -e --std=08 -fpsl $@
+
+
+tb_aes.ghw: tb_aes
+	ghdl -r tb_aes --wave=tb_aes.ghw --assert-level=error \
+	  --psl-report=$(basename $@)_psl_coverage_report.json
+
+
+.PHONY: wave
+wave: tb_aes.ghw
 	gtkwave -S tb_aes.tcl tb_aes.ghw
 
-clean :
+
+.PHONY: clean
+clean:
 	echo "# cleaning simulation files"
 	rm -f tb_aes
 	rm -f tb_aes.ghw
 	rm -f *.cf
 	rm -f *.o
+	rm -f *.json
+

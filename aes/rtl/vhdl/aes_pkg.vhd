@@ -1,7 +1,6 @@
 -- ======================================================================
 -- AES encryption/decryption
--- package file with functions
--- Copyright (C) 2011 Torsten Meissner
+-- Copyright (C) 2019 Torsten Meissner
 -------------------------------------------------------------------------
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -17,6 +16,7 @@
 -- along with this program; if not, write to the Free Software
 -- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 -- ======================================================================
+
 
 -- aes implementation
 -- key length: 128 bit -> Nk = 4
@@ -77,6 +77,8 @@ package aes_pkg is
 
   subtype t_rounds is natural range 0 to c_nr + 1;
   subtype t_key_rounds is natural range c_nk to c_nb * (c_nr + 1);
+  subtype t_enc_rounds is natural range t_rounds'low to t_rounds'high+1;
+  subtype t_dec_rounds is natural range t_rounds'low to t_rounds'high+1;
 
   type t_datatable1d is array (0 to 3) of std_logic_vector(7 downto 0);
   type t_datatable2d is array (0 to 3) of t_datatable1d;

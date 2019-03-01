@@ -1,7 +1,6 @@
 -- ======================================================================
--- AES encryption/decryption testbench
--- tests according to NIST special publication
--- Copyright (C) 2011 Torsten Meissner
+-- AES encryption/decryption
+-- Copyright (C) 2019 Torsten Meissner
 -------------------------------------------------------------------------
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -17,7 +16,6 @@
 -- along with this program; if not, write to the Free Software
 -- Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 -- ======================================================================
-
 
 
 library ieee;
@@ -94,6 +92,7 @@ begin
   begin
     wait until s_reset = '1';
     -- ENCRYPTION TEST
+    report "Test encryption";
     wait until rising_edge(s_clk);
     s_validin_enc <= '1';
     s_datain <= x"3243f6a8885a308d313198a2e0370734";
@@ -108,6 +107,7 @@ begin
     wait until rising_edge(s_clk);
     s_acceptin_enc <= '0';
     -- DECRYPTION TEST
+    report "Test decryption";
     wait until rising_edge(s_clk);
     s_validin_dec <= '1';
     wait until s_acceptout_dec = '1' and rising_edge(s_clk);
@@ -120,6 +120,7 @@ begin
     wait until rising_edge(s_clk);
     s_acceptin_dec <= '0';
     wait for 100 ns;
+    report "Tests successful";
     finish(0);
   end process;
 

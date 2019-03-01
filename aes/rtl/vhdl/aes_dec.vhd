@@ -1,7 +1,6 @@
 -- ======================================================================
--- AES decryption
--- algorithm according to FIPS 197 specification
--- Copyright (C) 2011 Torsten Meissner
+-- AES encryption/decryption
+-- Copyright (C) 2019 Torsten Meissner
 -------------------------------------------------------------------------
 -- This program is free software; you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -34,11 +33,11 @@ entity aes_dec is
   port (
     reset_i     : in  std_logic;                   -- async reset
     clk_i       : in  std_logic;                   -- clock
-    key_i       : in  std_logic_vector(0 TO 127);  -- key input
-    data_i      : in  std_logic_vector(0 TO 127);  -- data input
+    key_i       : in  std_logic_vector(0 to 127);  -- key input
+    data_i      : in  std_logic_vector(0 to 127);  -- data input
     valid_i     : in  std_logic;                   -- input key/data valid flag
     accept_o    : out std_logic;
-    data_o      : out std_logic_vector(0 TO 127);  -- data output
+    data_o      : out std_logic_vector(0 to 127);  -- data output
     valid_o     : out std_logic;                   -- output data valid flag
     accept_i    : in  std_logic
   );
@@ -70,10 +69,13 @@ architecture rtl of aes_dec is
 begin
 
 
+  -- psl default clock is rising_edge(Clk_i);
+
+
   IterG : if design_type = "ITER" generate
 
 
-    signal s_round : natural range t_rounds'low to t_rounds'high+1;
+    signal s_round : t_dec_rounds;
 
 
   begin
@@ -133,7 +135,22 @@ begin
     end process DeCryptP;
 
 
+    -- psl cover accept_o;
+    -- psl assert always (accept_o -> s_round = 0);
+    
+    -- psl cover valid_i and accept_o;
+    -- psl assert always (valid_i and accept_o -> next not accept_o);
+    
+    -- psl cover valid_o and accept_i;
+    -- psl assert always (valid_o and accept_i -> next not valid_o);
+
+    -- psl cover valid_o and not accept_i;
+    -- psl assert always (valid_o and not accept_i -> next data_o'stable);
+
+
   end generate IterG;
+  
 
 
 end architecture rtl;
+
