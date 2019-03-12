@@ -108,19 +108,22 @@ begin
             v_state := addroundkey(v_state, s_round_key);
             s_round <= s_round + 1;
 
-          when t_rounds'high =>
+          when t_dec_rounds'high-1 =>
             v_state := invshiftrow(v_state);
             v_state := invsubbytes(v_state);
             v_state := addroundkey(v_state, s_round_key);
             s_round <= s_round + 1;
-
-          when t_rounds'high+1 =>
+            -- set data & valid to save one cycle
             valid_o <= '1';
             data_o  <= get_state(v_state);
+
+          when t_dec_rounds'high =>
             if (valid_o = '1' and accept_i = '1') then
               valid_o <= '0';
               data_o  <= (others => '0');
               s_round <= 0;
+              -- Set accept to save one cycle
+              accept_o <= '1';
             end if;
 
           when others =>
@@ -135,17 +138,34 @@ begin
     end process DeCryptP;
 
 
-    -- psl cover accept_o;
-    -- psl assert always (accept_o -> s_round = 0);
-    
-    -- psl cover valid_i and accept_o;
-    -- psl assert always (valid_i and accept_o -> next not accept_o);
-    
-    -- psl cover valid_o and accept_i;
-    -- psl assert always (valid_o and accept_i -> next not valid_o);
+    -- synthesis off
+    verification : block is
 
-    -- psl cover valid_o and not accept_i;
-    -- psl assert always (valid_o and not accept_i -> next data_o'stable);
+      signal s_data : std_logic_vector(0 to 127);
+
+    begin
+
+      s_data <= data_o  when rising_edge(clk_i) else
+                128x"0" when reset_i = '0';
+
+      -- psl cover accept_o;
+      -- psl assert always (accept_o -> s_round = 0);
+
+      -- psl cover valid_i and accept_o;
+      -- psl assert always (valid_i and accept_o -> next not accept_o);
+
+      -- psl cover valid_o;
+      -- psl assert always (valid_o -> s_round = t_dec_rounds'high);
+
+      -- psl cover valid_o and accept_i;
+      -- psl assert always (valid_o and accept_i -> next not valid_o);
+
+      -- psl cover valid_o and not accept_i;
+      -- psl assert always (valid_o and not accept_i -> next valid_o);
+      -- psl assert always (valid_o and not accept_i -> next data_o = s_data);
+
+    end block verification;
+    -- synthesis on
 
 
   end generate IterG;
