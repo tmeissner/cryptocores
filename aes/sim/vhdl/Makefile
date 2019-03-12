@@ -36,13 +36,17 @@ sim: tb_aes.ghw
 compile: tb_aes
 
 
-tb_aes: ${RTL_SRC} ${SIM_SRC}
-	ghdl -a --std=08 -fpsl ${RTL_SRC} ${SIM_SRC}
-	ghdl -e --std=08 -fpsl $@
+work:
+	mkdir work
+
+
+tb_aes: ${RTL_SRC} ${SIM_SRC} | work
+	ghdl -a --std=08 -fpsl --workdir=work ${RTL_SRC} ${SIM_SRC}
+	ghdl -e --std=08 -fpsl --workdir=work $@
 
 
 tb_aes.ghw: tb_aes
-	ghdl -r tb_aes --wave=tb_aes.ghw --assert-level=error \
+	ghdl -r tb_aes --wave=$@ --assert-level=error \
 	  --psl-report=$(basename $@)_psl_coverage_report.json
 
 
@@ -56,7 +60,7 @@ clean:
 	echo "# cleaning simulation files"
 	rm -f tb_aes
 	rm -f tb_aes.ghw
-	rm -f *.cf
 	rm -f *.o
 	rm -f *.json
+	rm -rf work/
 
