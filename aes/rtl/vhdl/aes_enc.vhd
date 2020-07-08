@@ -48,28 +48,7 @@ end entity aes_enc;
 architecture rtl of aes_enc is
 
 
-  -- Fixed round keys for verification until key schedule is implemented
-  type t_key_array is array (1 to 11) of t_key;
-  constant c_round_keys : t_key_array := (
-    (x"2b7e1516", x"28aed2a6", x"abf71588", x"09cf4f3c"),
-    (x"a0fafe17", x"88542cb1", x"23a33939", x"2a6c7605"),
-    (x"f2c295f2", x"7a96b943", x"5935807a", x"7359f67f"),
-    (x"3d80477d", x"4716fe3e", x"1e237e44", x"6d7a883b"),
-    (x"ef44a541", x"a8525b7f", x"b671253b", x"db0bad00"),
-    (x"d4d1c6f8", x"7c839d87", x"caf2b8bc", x"11f915bc"),
-    (x"6d88a37a", x"110b3efd", x"dbf98641", x"ca0093fd"),
-    (x"4e54f70e", x"5f5fc9f3", x"84a64fb2", x"4ea6dc4f"),
-    (x"ead27321", x"b58dbad2", x"312bf560", x"7f8d292f"),
-    (x"ac7766f3", x"19fadc21", x"28d12941", x"575c006e"),
-    (x"d014f9a8", x"c9ee2589", x"e13f0cc8", x"b6630ca6")
-  );
-  signal s_round_key : t_key := (others => (others => '0'));
-
-
 begin
-
-
-  -- psl default clock is rising_edge(Clk_i);
 
 
   IterG : if design_type = "ITER" generate
@@ -81,14 +60,13 @@ begin
   begin
 
 
-    s_round_key <= c_round_keys(s_round) when s_round >= 1 and s_round <= 11 else
-                   (others => (others => '0'));
-
     CryptP : process (reset_i, clk_i) is
       variable v_state : t_datatable2d;
+      variable v_key   : t_key;
     begin
       if (reset_i = '0') then
         v_state  := (others => (others => (others => '0')));
+        v_key    := (others => (others => '0'));
         s_round  <= 0;
         accept_o <= '0';
         data_o   <= (others => '0');
@@ -101,17 +79,19 @@ begin
             if (accept_o = '1' and valid_i = '1') then
               accept_o <= '0';
               v_state  := set_state(data_i);
+              v_key    := (key_i(0 to 31), key_i(32 to 63), key_i(64 to 95), key_i(96 to 127));
               s_round  <= s_round + 1;
             end if;
 
           when 1 =>
-            v_state := addroundkey(v_state, s_round_key);
+            v_state := addroundkey(v_state, v_key);
+            v_key   := key_round(v_key, s_round-1);
             s_round <= s_round + 1;
 
           when t_enc_rounds'high-1 =>
             v_state := subbytes(v_state);
             v_state := shiftrow(v_state);
-            v_state := addroundkey(v_state, s_round_key);
+            v_state := addroundkey(v_state, v_key);
             s_round <= s_round + 1;
             -- set data & valid to save one cycle
             valid_o <= '1';
@@ -130,7 +110,8 @@ begin
             v_state := subbytes(v_state);
             v_state := shiftrow(v_state);
             v_state := mixcolumns(v_state);
-            v_state := addroundkey(v_state, s_round_key);
+            v_state := addroundkey(v_state, v_key);
+            v_key   := key_round(v_key, s_round-1);
             s_round <= s_round + 1;
 
         end case;
@@ -148,21 +129,23 @@ begin
       s_data <= data_o  when rising_edge(clk_i) else
                 128x"0" when reset_i = '0';
 
-      -- psl cover accept_o;
-      -- psl assert always (accept_o -> s_round = 0);
+      default clock is rising_edge(Clk_i);
+
+      cover {accept_o};
+      assert always (accept_o -> s_round = 0);
     
-      -- psl cover valid_i and accept_o;
-      -- psl assert always (valid_i and accept_o -> next not accept_o);
+      cover {valid_i and accept_o};
+      assert always (valid_i and accept_o -> next not accept_o);
 
-      -- psl cover valid_o;
-      -- psl assert always (valid_o -> s_round = t_enc_rounds'high);
+      cover {valid_o};
+      assert always (valid_o -> s_round = t_enc_rounds'high);
 
-      -- psl cover valid_o and accept_i;
-      -- psl assert always (valid_o and accept_i -> next not valid_o);
+      cover {valid_o and accept_i};
+      assert always (valid_o and accept_i -> next not valid_o);
 
-      -- psl cover valid_o and not accept_i;
-      -- psl assert always (valid_o and not accept_i -> next valid_o);
-      -- psl assert always (valid_o and not accept_i -> next data_o = s_data);
+      cover {valid_o and not accept_i};
+      assert always (valid_o and not accept_i -> next valid_o);
+      assert always (valid_o and not accept_i -> next data_o = s_data);
 
     end block verification;
     -- synthesis on

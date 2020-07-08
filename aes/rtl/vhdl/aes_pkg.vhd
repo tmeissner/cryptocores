@@ -88,7 +88,7 @@ package aes_pkg is
 
   type t_key is array (0 to 3) of std_logic_vector(31 downto 0);
 
-  type t_rcon is array (0 to 9) of t_datatable1d;
+  type t_rcon is array (0 to 9) of std_logic_vector(7 downto 0);
 
   constant c_sbox : t_stable2d := (
     -- 0     1      2      3      4      5      6      7      8      9      A      B      C      D      E      F
@@ -128,17 +128,7 @@ package aes_pkg is
     (x"a0", x"e0", x"3b", x"4d", x"ae", x"2a", x"f5", x"b0", x"c8", x"eb", x"bb", x"3c", x"83", x"53", x"99", x"61"), -- E
     (x"17", x"2b", x"04", x"7e", x"ba", x"77", x"d6", x"26", x"e1", x"69", x"14", x"63", x"55", x"21", x"0c", x"7d"));-- F
 
-  constant c_rcon : t_rcon := (
-    (x"01", x"00", x"00", x"00"),
-    (x"02", x"00", x"00", x"00"),
-    (x"04", x"00", x"00", x"00"),
-    (x"08", x"00", x"00", x"00"),
-    (x"10", x"00", x"00", x"00"),
-    (x"20", x"00", x"00", x"00"),
-    (x"40", x"00", x"00", x"00"),
-    (x"80", x"00", x"00", x"00"),
-    (x"1B", x"00", x"00", x"00"),
-    (x"36", x"00", x"00", x"00"));
+  constant c_rcon : t_rcon := (x"01", x"02", x"04", x"08", x"10", x"20", x"40", x"80", x"1B", x"36");
 
   type t_mode is (ENCRYPT, DECRYPT);
 
@@ -161,9 +151,11 @@ package aes_pkg is
 
   function addroundkey (input : in t_datatable2d; key : in t_key) return t_datatable2d;
 
-  function subword (input : in t_datatable1d) return t_datatable1d;
+  function subword (input : in std_logic_vector(31 downto 0)) return std_logic_vector;
 
-  function rotword (input : in t_datatable1d) return t_datatable1d;
+  function rotword (input : in std_logic_vector(31 downto 0)) return std_logic_vector;
+
+  function key_round (key : t_key; round : t_enc_rounds) return t_key;
 
   function set_state (input : in std_logic_vector(0 to 127)) return t_datatable2d;
 
@@ -345,20 +337,30 @@ package body aes_pkg is
   end function addroundkey;
 
 
-  function subword (input : in t_datatable1d) return t_datatable1d is
-    variable v_data : t_datatable1d;
+  function subword (input : in std_logic_vector(31 downto 0)) return std_logic_vector is
+    variable v_data : std_logic_vector(31 downto 0);
   begin
-    for i in 0 to 3 loop
-      v_data(i) := c_sbox(to_integer(unsigned(input(i)(7 downto 4))))(to_integer(unsigned(input(i)(3 downto 0))));
-    end loop;
+    v_data := bytesub(input(31 downto 24)) & bytesub(input(23 downto 16)) & bytesub(input(15 downto 8)) & bytesub(input(7 downto 0));
     return v_data;
   end function subword;
 
 
-  function rotword (input : in t_datatable1d) return t_datatable1d is
+  function rotword (input : in std_logic_vector(31 downto 0)) return std_logic_vector is
   begin
-    return(input(1), input(2), input(3), input(0));
+    return (input(23 downto 16), input(15 downto 8), input(7 downto 0), input(31 downto 24));
   end function rotword;
+
+
+  function key_round (key : t_key; round : t_enc_rounds) return t_key is
+    variable v_key : t_key;
+  begin
+    v_key(3) := subword(rotword(key(3))) xor (c_rcon(round) & x"000000");
+    v_key(0) := key(0) xor v_key(3);
+    v_key(1) := v_key(0) xor key(1);
+    v_key(2) := v_key(1) xor key(2);
+    v_key(3) := v_key(2) xor key(3);
+    return v_key;
+  end function key_round;
 
 
   function set_state (input : in std_logic_vector(0 to 127)) return t_datatable2d is
