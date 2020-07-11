@@ -69,9 +69,6 @@ architecture rtl of aes_dec is
 begin
 
 
-  -- psl default clock is rising_edge(Clk_i);
-
-
   IterG : if design_type = "ITER" generate
 
 
@@ -148,28 +145,30 @@ begin
       s_data <= data_o  when rising_edge(clk_i) else
                 128x"0" when reset_i = '0';
 
-      -- psl cover accept_o;
-      -- psl assert always (accept_o -> s_round = 0);
+      default clock is rising_edge(Clk_i);
 
-      -- psl cover valid_i and accept_o;
-      -- psl assert always (valid_i and accept_o -> next not accept_o);
+      cover {accept_o};
+      assert always (accept_o -> s_round = 0);
 
-      -- psl cover valid_o;
-      -- psl assert always (valid_o -> s_round = t_dec_rounds'high);
+      cover {valid_i and accept_o};
+      assert always (valid_i and accept_o -> next not accept_o);
 
-      -- psl cover valid_o and accept_i;
-      -- psl assert always (valid_o and accept_i -> next not valid_o);
+      cover {valid_o};
+      assert always (valid_o -> s_round = t_dec_rounds'high);
 
-      -- psl cover valid_o and not accept_i;
-      -- psl assert always (valid_o and not accept_i -> next valid_o);
-      -- psl assert always (valid_o and not accept_i -> next data_o = s_data);
+      cover {valid_o and accept_i};
+      assert always (valid_o and accept_i -> next not valid_o);
+
+      cover {valid_o and not accept_i};
+      assert always (valid_o and not accept_i -> next valid_o);
+      assert always (valid_o and not accept_i -> next data_o = s_data);
 
     end block verification;
     -- synthesis on
 
 
   end generate IterG;
-  
+
 
 
 end architecture rtl;
