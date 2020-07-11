@@ -52,11 +52,11 @@ begin
 
 
   IterG : if design_type = "ITER" generate
-  
-  
+
+
     signal s_round : t_enc_rounds;
-  
-  
+
+
   begin
 
 
@@ -79,7 +79,7 @@ begin
             if (accept_o = '1' and valid_i = '1') then
               accept_o <= '0';
               v_state  := set_state(data_i);
-              v_key    := (key_i(0 to 31), key_i(32 to 63), key_i(64 to 95), key_i(96 to 127));
+              v_key    := set_key(key_i);
               s_round  <= s_round + 1;
             end if;
 
@@ -133,7 +133,7 @@ begin
 
       cover {accept_o};
       assert always (accept_o -> s_round = 0);
-    
+
       cover {valid_i and accept_o};
       assert always (valid_i and accept_o -> next not accept_o);
 
@@ -152,7 +152,7 @@ begin
 
 
   end generate IterG;
-  
+
 
 
 end architecture rtl;

@@ -130,8 +130,6 @@ package aes_pkg is
 
   constant c_rcon : t_rcon := (x"01", x"02", x"04", x"08", x"10", x"20", x"40", x"80", x"1B", x"36");
 
-  type t_mode is (ENCRYPT, DECRYPT);
-
 
   function bytesub    (input : std_logic_vector(7 downto 0)) return std_logic_vector;
   function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector;
@@ -144,8 +142,6 @@ package aes_pkg is
 
   function mixcolumns (input : t_datatable2d) return t_datatable2d;
   function invmixcolumns (input : t_datatable2d) return t_datatable2d;
-
-  function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d;
 
   function gmul (a : std_logic_vector(7 downto 0); b : std_logic_vector(7 downto 0)) return std_logic_vector;
 
@@ -161,6 +157,8 @@ package aes_pkg is
 
   function get_state (input : in t_datatable2d) return std_logic_vector;
 
+  function set_key (input : in std_logic_vector(0 to 127)) return t_key;
+
   function to_string(input : t_datatable2d) return string;
 
 
@@ -171,27 +169,15 @@ end package aes_pkg;
 package body aes_pkg is
 
 
-  function sortdata (input : std_logic_vector(127 downto 0)) return t_datatable2d is
-    variable v_datamatrix : t_datatable2d;
-  begin
-    for outdex in 0 to 3 loop
-      for index in 0 to 3 loop
-        v_datamatrix(index)(outdex) := input(outdex*32+(index+1)*7 downto outdex*32+index*8);
-      end loop;
-    end loop;
-    return v_datamatrix;
-  end function sortdata;
-
-
   function bytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector is
   begin
-    return(c_sbox(to_integer(unsigned(input(7 downto 4))))(to_integer(unsigned(input(3 downto 0)))));
+    return c_sbox(to_integer(unsigned(input(7 downto 4))))(to_integer(unsigned(input(3 downto 0))));
   end function bytesub;
 
 
   function invbytesub (input : std_logic_vector(7 downto 0)) return std_logic_vector is
   begin
-    return(c_sbox_invers(to_integer(unsigned(input(7 downto 4))))(to_integer(unsigned(input(3 downto 0)))));
+    return c_sbox_invers(to_integer(unsigned(input(7 downto 4))))(to_integer(unsigned(input(3 downto 0))));
   end function invbytesub;
 
 
@@ -382,6 +368,12 @@ package body aes_pkg is
            input(0)(2) & input(1)(2) & input(2)(2) & input(3)(2) &
            input(0)(3) & input(1)(3) & input(2)(3) & input(3)(3);
   end function get_state;
+
+
+  function set_key (input : in std_logic_vector(0 to 127)) return t_key is
+  begin
+    return (input(0 to 31), input(32 to 63), input(64 to 95), input(96 to 127));
+  end function set_key;
 
 
   function to_string(input : t_datatable2d) return string is
