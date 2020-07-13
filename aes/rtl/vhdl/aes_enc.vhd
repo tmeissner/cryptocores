@@ -28,7 +28,9 @@ use work.aes_pkg.all;
 
 entity aes_enc is
   generic (
-    design_type : string := "ITER"
+    design_type : string  := "ITER";
+    formal      : boolean := false;
+    simulation  : boolean := false
   );
   port (
     reset_i     : in  std_logic;                   -- async reset
@@ -119,8 +121,36 @@ begin
     end process CryptP;
 
 
-    -- synthesis off
-    verification : block is
+    formalG : if formal generate
+
+    begin
+
+      default clock is rising_edge(Clk_i);
+
+      -- initial reset
+      restrict {not reset_i; reset_i[+]}[*1];
+
+      -- constraints
+      assume always (valid_i and not accept_o -> next stable(valid_i));
+      assume always (valid_i and not accept_o -> next stable(key_i));
+      assume always (valid_i and not accept_o -> next stable(data_i));
+
+      -- interface asserts
+      assert always (accept_o -> s_round = 0);
+
+      assert always (valid_i and accept_o -> next not accept_o);
+
+      assert always (valid_o -> s_round = t_enc_rounds'high);
+
+      assert always (valid_o and accept_i -> next not valid_o);
+
+      assert always (valid_o and not accept_i -> next stable(valid_o));
+      assert always (valid_o and not accept_i -> next stable(data_o));
+
+    end generate formalG;
+
+
+    simulationG : if simulation generate
 
       signal s_data : std_logic_vector(0 to 127);
 
@@ -147,8 +177,7 @@ begin
       assert always (valid_o and not accept_i -> next valid_o);
       assert always (valid_o and not accept_i -> next data_o = s_data);
 
-    end block verification;
-    -- synthesis on
+    end generate simulationG;
 
 
   end generate IterG;
