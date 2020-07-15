@@ -24,8 +24,10 @@ RTL_SRC := \
   ../../rtl/vhdl/aes_enc.vhd \
   ../../rtl/vhdl/aes_dec.vhd
 
-SIM_SRC := \
-  tb_aes.vhd
+SIM_SRC   := tb_aes.vhd
+C_SRC     := tb_aes.c
+OSVVM_SRC := ../../../lib/OSVVM
+VHD_STD   := 08
 
 
 .PHONY: sim
@@ -36,13 +38,34 @@ sim: tb_aes.ghw
 compile: tb_aes
 
 
-work:
-	mkdir work
+osvvm work:
+	mkdir $@
 
 
-tb_aes: ${RTL_SRC} ${SIM_SRC} | work
-	ghdl -a --std=08 -fpsl --workdir=work ${RTL_SRC} ${SIM_SRC}
-	ghdl -e --std=08 -fpsl --workdir=work $@
+osvvm/OsvvmContext.o: $(OSVVM_SRC)/*.vhd | osvvm
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/NamePkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/OsvvmGlobalPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/VendorCovApiPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/TranscriptPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/TextUtilPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/AlertLogPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/MessagePkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/SortListPkg_int.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/RandomBasePkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/RandomPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/CoveragePkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/MemoryPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/ScoreboardGenericPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/ScoreboardPkg_slv.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/ScoreboardPkg_int.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/ResolutionPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/TbUtilPkg.vhd
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/OsvvmContext.vhd
+
+
+tb_aes: ${RTL_SRC} ${SIM_SRC} ${C_SRC} osvvm/OsvvmContext.o | work
+	ghdl -a --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm ${RTL_SRC} ${SIM_SRC}
+	ghdl -e --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm -Wl,-lcrypto -Wl,-lssl -Wl,tb_aes.c $@
 
 
 tb_aes.ghw: tb_aes
@@ -63,4 +86,5 @@ clean:
 	rm -f *.o
 	rm -f *.json
 	rm -rf work/
+	rm -rf osvvm/
 

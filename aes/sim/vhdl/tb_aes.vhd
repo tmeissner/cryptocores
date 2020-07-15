@@ -22,6 +22,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library osvvm;
+  use osvvm.RandomPkg.all;
+
 use std.env.all;
 
 use work.aes_pkg.all;
@@ -52,6 +55,27 @@ architecture rtl of tb_aes is
   signal s_validout_dec  : std_logic;
   signal s_acceptin_dec  : std_logic := '0';
 
+  procedure cryptData(datain  : in  std_logic_vector(0 to 127);
+                      key     : in  std_logic_vector(0 to 127);
+                      mode    : in  boolean;
+                      dataout : out std_logic_vector(0 to 127);
+                      len     : in  integer) is
+  begin
+    report "VHPIDIRECT cryptData" severity failure;
+  end procedure;
+
+  attribute foreign of cryptData: procedure is "VHPIDIRECT cryptData";
+
+  function swap (datain : std_logic_vector(0 to 127)) return std_logic_vector is
+    variable v_data : std_logic_vector(0 to 127);
+  begin
+    for i in 0 to 15 loop
+      for y in 0 to 7 loop
+        v_data((i*8)+y) := datain((i*8)+7-y);
+      end loop;
+    end loop;
+    return v_data;
+  end function;
 
 begin
 
@@ -89,37 +113,52 @@ begin
 
 
   process is
+    variable v_key     : std_logic_vector(0 to 127);
+    variable v_datain  : std_logic_vector(0 to 127);
+    variable v_dataout : std_logic_vector(0 to 127);
+    variable v_random  : RandomPType;
   begin
+    v_random.InitSeed(v_random'instance_name);
     wait until s_reset = '1';
-    -- ENCRYPTION TEST
+    -- ENCRYPTION TESTs
     report "Test encryption";
-    wait until rising_edge(s_clk);
-    s_validin_enc <= '1';
-    s_key <= x"2b7e151628aed2a6abf7158809cf4f3c";
-    s_datain <= x"3243f6a8885a308d313198a2e0370734";
-    wait until s_acceptout_enc = '1' and rising_edge(s_clk);
-    s_validin_enc <= '0';
-    wait until s_validout_enc = '1' and rising_edge(s_clk);
-    s_acceptin_enc <= '1';
-    assert s_dataout_enc = x"3925841D02DC09FBDC118597196A0B32"
-      report "Encryption error"
-      severity failure;
-    s_datain <= s_dataout_enc;
-    wait until rising_edge(s_clk);
-    s_acceptin_enc <= '0';
-    -- DECRYPTION TEST
+    for i in 0 to 63 loop
+      wait until rising_edge(s_clk);
+      s_validin_enc <= '1';
+      v_key         := v_random.RandSlv(128);
+      v_datain      := v_random.RandSlv(128);
+      s_key         <= v_key;
+      s_datain      <= v_datain;
+      cryptData(swap(v_datain), swap(v_key), true, v_dataout, 128);
+      wait until s_acceptout_enc = '1' and rising_edge(s_clk);
+      s_validin_enc <= '0';
+      wait until s_validout_enc = '1' and rising_edge(s_clk);
+      s_acceptin_enc <= '1';
+      assert s_dataout_enc = swap(v_dataout)
+        report "Encryption error"
+        severity failure;
+      wait until rising_edge(s_clk);
+      s_acceptin_enc <= '0';
+    end loop;
+    -- DECRYPTION TESTs
     report "Test decryption";
-    wait until rising_edge(s_clk);
-    s_validin_dec <= '1';
-    wait until s_acceptout_dec = '1' and rising_edge(s_clk);
-    s_validin_dec <= '0';
-    wait until s_validout_dec = '1' and rising_edge(s_clk);
-    s_acceptin_dec <= '1';
-    assert s_dataout_dec = x"3243f6a8885a308d313198a2e0370734"
-      report "Decryption error"
-      severity failure;
-    wait until rising_edge(s_clk);
-    s_acceptin_dec <= '0';
+    for i in 0 to 63 loop
+      wait until rising_edge(s_clk);
+      s_validin_dec <= '1';
+      v_key         := x"2b7e151628aed2a6abf7158809cf4f3c";
+      v_datain      := x"3925841D02DC09FBDC118597196A0B32";
+      s_key         <= v_key;
+      s_datain      <= v_datain;
+      wait until s_acceptout_dec = '1' and rising_edge(s_clk);
+      s_validin_dec <= '0';
+      wait until s_validout_dec = '1' and rising_edge(s_clk);
+      s_acceptin_dec <= '1';
+      assert s_dataout_dec = x"3243f6a8885a308d313198a2e0370734"
+        report "Decryption error"
+        severity failure;
+      wait until rising_edge(s_clk);
+      s_acceptin_dec <= '0';
+    end loop;
     wait for 100 ns;
     report "Tests successful";
     finish(0);
