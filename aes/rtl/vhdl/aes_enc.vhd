@@ -28,9 +28,7 @@ use work.aes_pkg.all;
 
 entity aes_enc is
   generic (
-    design_type : string  := "ITER";
-    formal      : boolean := false;
-    simulation  : boolean := false
+    design_type : string  := "ITER"
   );
   port (
     reset_i     : in  std_logic;                   -- async reset
@@ -121,63 +119,48 @@ begin
     end process CryptP;
 
 
-    formalG : if formal generate
+    psl : block is
+
+      signal s_key , s_din, s_dout : std_logic_vector(0 to 127) := (others => '0');
 
     begin
 
-      default clock is rising_edge(Clk_i);
+      process (clk_i) is
+      begin
+        if (rising_edge(clk_i)) then
+          s_key  <= key_i;
+          s_din  <= data_i;
+          s_dout <= data_o;
+        end if;
+      end process;
+
+      default clock is rising_edge(clk_i);
 
       -- initial reset
       restrict {not reset_i; reset_i[+]}[*1];
 
       -- constraints
-      assume always (valid_i and not accept_o -> next stable(valid_i));
-      assume always (valid_i and not accept_o -> next stable(key_i));
-      assume always (valid_i and not accept_o -> next stable(data_i));
+      assume always (valid_i and not accept_o -> next valid_i);
+      assume always (valid_i and not accept_o -> next key_i = s_key);
+      assume always (valid_i and not accept_o -> next data_i = s_din);
 
-      -- interface asserts
-      assert always (accept_o -> s_round = 0);
+      ACCEPTO_c : cover {accept_o};
+      ACCEPT_IN_ROUND_0_ONLY_a : assert always (accept_o -> s_round = 0);
 
-      assert always (valid_i and accept_o -> next not accept_o);
+      VALIDI_AND_ACCEPTO_c : cover {valid_i and accept_o};
+      ACCEPT_OFF_WHEN_VALID_a : assert always (valid_i and accept_o -> next not accept_o);
 
-      assert always (valid_o -> s_round = t_enc_rounds'high);
+      VALIDO_c : cover {valid_o};
+      VALID_IN_LAST_ROUND_ONLY_a : assert always (valid_o -> s_round = t_enc_rounds'high);
 
-      assert always (valid_o and accept_i -> next not valid_o);
+      VALIDO_AND_ACCEPTI_c : cover {valid_o and accept_i};
+      VALID_OFF_WHEN_ACCEPTED_a : assert always (valid_o and accept_i -> next not valid_o);
 
-      assert always (valid_o and not accept_i -> next stable(valid_o));
-      assert always (valid_o and not accept_i -> next stable(data_o));
+      VALIDO_AND_NOT_ACCEPTI_c : cover {valid_o and not accept_i};
+      VALID_STABLE_WHEN_NOT_ACCEPTED_a : assert always (valid_o and not accept_i -> next valid_o);
+      DATA_STABLE_WHEN_NOT_ACCEPTED_a : assert always (valid_o and not accept_i -> next data_o = s_dout);
 
-    end generate formalG;
-
-
-    simulationG : if simulation generate
-
-      signal s_data : std_logic_vector(0 to 127);
-
-    begin
-
-      s_data <= data_o  when rising_edge(clk_i) else
-                128x"0" when reset_i = '0';
-
-      default clock is rising_edge(Clk_i);
-
-      cover {accept_o};
-      assert always (accept_o -> s_round = 0);
-
-      cover {valid_i and accept_o};
-      assert always (valid_i and accept_o -> next not accept_o);
-
-      cover {valid_o};
-      assert always (valid_o -> s_round = t_enc_rounds'high);
-
-      cover {valid_o and accept_i};
-      assert always (valid_o and accept_i -> next not valid_o);
-
-      cover {valid_o and not accept_i};
-      assert always (valid_o and not accept_i -> next valid_o);
-      assert always (valid_o and not accept_i -> next data_o = s_data);
-
-    end generate simulationG;
+    end block psl;
 
 
   end generate IterG;
