@@ -59,7 +59,7 @@ architecture rtl of tb_aes is
                       key     : in  std_logic_vector(0 to 127);
                       mode    : in  boolean;
                       dataout : out std_logic_vector(0 to 127);
-                      len     : in  integer) is
+                      bytelen : in  integer) is
   begin
     report "VHPIDIRECT cryptData" severity failure;
   end procedure;
@@ -129,7 +129,7 @@ begin
       v_datain      := v_random.RandSlv(128);
       s_key         <= v_key;
       s_datain      <= v_datain;
-      cryptData(swap(v_datain), swap(v_key), true, v_dataout, 128);
+      cryptData(swap(v_datain), swap(v_key), true, v_dataout, v_datain'length/8);
       wait until s_acceptout_enc = '1' and rising_edge(s_clk);
       s_validin_enc <= '0';
       wait until s_validout_enc = '1' and rising_edge(s_clk);
@@ -146,14 +146,15 @@ begin
       wait until rising_edge(s_clk);
       s_validin_dec <= '1';
       v_key         := x"2b7e151628aed2a6abf7158809cf4f3c";
-      v_datain      := x"3925841D02DC09FBDC118597196A0B32";
+      v_datain      := v_random.RandSlv(128);
       s_key         <= v_key;
       s_datain      <= v_datain;
+      cryptData(swap(v_datain), swap(v_key), false, v_dataout, v_datain'length/8);
       wait until s_acceptout_dec = '1' and rising_edge(s_clk);
       s_validin_dec <= '0';
       wait until s_validout_dec = '1' and rising_edge(s_clk);
       s_acceptin_dec <= '1';
-      assert s_dataout_dec = x"3243f6a8885a308d313198a2e0370734"
+      assert s_dataout_dec = swap(v_dataout)
         report "Decryption error"
         severity failure;
       wait until rising_edge(s_clk);

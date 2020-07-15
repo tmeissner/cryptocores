@@ -71,79 +71,111 @@ void uchar_to_slv(unsigned char* datain, char* dataout, int bytelen) {
 }
 
 
-void handleErrors(void)
-{
-    ERR_print_errors_fp(stderr);
-    abort();
+void handleErrors(void) {
+
+  ERR_print_errors_fp(stderr);
+  abort();
+
 }
 
 
 int encrypt(unsigned char *plaintext, int plaintext_len, unsigned char *key,
-            unsigned char *ciphertext)
-{
-    EVP_CIPHER_CTX *ctx;
+            unsigned char *ciphertext) {
 
-    int len;
+  EVP_CIPHER_CTX *ctx;
 
-    int ciphertext_len;
+  int len;
+  int ciphertext_len;
 
-    /* Create and initialise the context */
-    if(!(ctx = EVP_CIPHER_CTX_new()))
-        handleErrors();
-
-    /*
-     * Initialise the encryption operation. IMPORTANT - ensure you use a key
-     * and IV size appropriate for your cipher
-     * In this example we are using 256 bit AES (i.e. a 256 bit key). The
-     * IV size for *most* modes is the same as the block size. For AES this
-     * is 128 bits
-     */
-    if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL))
-        handleErrors();
-
-    if(1 != EVP_CIPHER_CTX_set_padding(ctx, 0))
+  // Create and initialise the context
+  if(!(ctx = EVP_CIPHER_CTX_new()))
       handleErrors();
 
-    /*
-     * Provide the message to be encrypted, and obtain the encrypted output.
-     * EVP_EncryptUpdate can be called multiple times if necessary
-     */
-    if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
-        handleErrors();
-    ciphertext_len = len;
+  // Initialise the encryption operation, no IV needed in ECB mode
+  if(1 != EVP_EncryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL))
+      handleErrors();
 
-    /*
-     * Finalise the encryption. Further ciphertext bytes may be written at
-     * this stage.
-     */
-    if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
-        handleErrors();
-    ciphertext_len += len;
+  // We don't want padding
+  if(1 != EVP_CIPHER_CTX_set_padding(ctx, 0))
+    handleErrors();
 
-    /* Clean up */
-    EVP_CIPHER_CTX_free(ctx);
+  // Provide the message to be encrypted, and obtain the encrypted output
+  if(1 != EVP_EncryptUpdate(ctx, ciphertext, &len, plaintext, plaintext_len))
+      handleErrors();
+  ciphertext_len = len;
 
-    return ciphertext_len;
+  //  Finalise the encryption. No further bytes are written as padding is switched off
+  if(1 != EVP_EncryptFinal_ex(ctx, ciphertext + len, &len))
+      handleErrors();
+  ciphertext_len += len;
+
+  // Clean up
+  EVP_CIPHER_CTX_free(ctx);
+
+  return ciphertext_len;
+
 }
 
 
-void cryptData(char* datain, char* key, char mode, char* dataout, int len) {
+int decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key,
+            unsigned char *plaintext) {
 
-  unsigned char c_data[len+1];
-  unsigned char c_key[len+1];
-  unsigned char c_data_e[len+1];
-  int ciphertext_len;
+  EVP_CIPHER_CTX *ctx;
 
-  c_data[len] = 0;
-  c_key[len] = 0;
-  c_data_e[len] = 0;
+  int len;
+  int plaintext_len;
 
-  slv_to_uchar(datain, c_data, 16);
-  slv_to_uchar(key, c_key, 16);
+  // Create and initialise the context
+  if(!(ctx = EVP_CIPHER_CTX_new()))
+      handleErrors();
 
-  ciphertext_len = encrypt(c_data, 128/8, c_key, c_data_e);
+  // Initialise the decryption operation, no IV needed in ECB mode
+  if(1 != EVP_DecryptInit_ex(ctx, EVP_aes_128_ecb(), NULL, key, NULL))
+      handleErrors();
 
-  uchar_to_slv(c_data_e, dataout, 16);
+  // We don't want padding
+  if(1 != EVP_CIPHER_CTX_set_padding(ctx, 0))
+    handleErrors();
+
+  // Provide the message to be decrypted, and obtain the decrypted output
+  if(1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertext_len))
+      handleErrors();
+  plaintext_len = len;
+
+  //  Finalise the decryption. No further bytes are written as padding is switched off
+  if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len))
+      handleErrors();
+  plaintext_len += len;
+
+  // Clean up
+  EVP_CIPHER_CTX_free(ctx);
+
+  return plaintext_len;
+
+}
+
+
+void cryptData(char* datain, char* key, char mode, char* dataout, int bytelen) {
+
+  int crypt_len;
+  unsigned char c_din[bytelen];
+  unsigned char c_key[bytelen];
+  unsigned char c_dout[bytelen];
+
+  slv_to_uchar(datain, c_din, bytelen);
+  slv_to_uchar(key, c_key, bytelen);
+
+  if (mode) {
+    crypt_len = encrypt(c_din, bytelen, c_key, c_dout);
+  } else {
+    crypt_len = decrypt(c_din, bytelen, c_key, c_dout);
+  }
+
+  if (crypt_len != 16) {
+    printf("Warning: crypt operation returned with unexpected length %d\n", crypt_len);
+  }
+
+  uchar_to_slv(c_dout, dataout, bytelen);
 
   return;
 
