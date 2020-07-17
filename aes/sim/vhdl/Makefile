@@ -26,8 +26,29 @@ RTL_SRC := \
 
 SIM_SRC   := tb_aes.vhd
 C_SRC     := tb_aes.c
-OSVVM_SRC := ../../../lib/osvvm
-VHD_STD   := 08
+
+OSVVM_DIR := ../../../lib/osvvm
+OSVVM_SRC := \
+  $(OSVVM_DIR)/NamePkg.vhd  \
+  $(OSVVM_DIR)/OsvvmGlobalPkg.vhd  \
+  $(OSVVM_DIR)/VendorCovApiPkg.vhd  \
+  $(OSVVM_DIR)/TranscriptPkg.vhd  \
+  $(OSVVM_DIR)/TextUtilPkg.vhd  \
+  $(OSVVM_DIR)/AlertLogPkg.vhd  \
+  $(OSVVM_DIR)/MessagePkg.vhd  \
+  $(OSVVM_DIR)/SortListPkg_int.vhd  \
+  $(OSVVM_DIR)/RandomBasePkg.vhd  \
+  $(OSVVM_DIR)/RandomPkg.vhd  \
+  $(OSVVM_DIR)/CoveragePkg.vhd  \
+  $(OSVVM_DIR)/MemoryPkg.vhd  \
+  $(OSVVM_DIR)/ScoreboardGenericPkg.vhd  \
+  $(OSVVM_DIR)/ScoreboardPkg_slv.vhd  \
+  $(OSVVM_DIR)/ScoreboardPkg_int.vhd  \
+  $(OSVVM_DIR)/ResolutionPkg.vhd  \
+  $(OSVVM_DIR)/TbUtilPkg.vhd  \
+  $(OSVVM_DIR)/OsvvmContext.vhd
+
+VHD_STD := 08
 
 
 .PHONY: sim
@@ -42,49 +63,30 @@ osvvm work:
 	mkdir $@
 
 
-osvvm/OsvvmContext.o: $(OSVVM_SRC)/*.vhd | osvvm
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/NamePkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/OsvvmGlobalPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/VendorCovApiPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/TranscriptPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/TextUtilPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/AlertLogPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/MessagePkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/SortListPkg_int.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/RandomBasePkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/RandomPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/CoveragePkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/MemoryPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/ScoreboardGenericPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/ScoreboardPkg_slv.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/ScoreboardPkg_int.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/ResolutionPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/TbUtilPkg.vhd
-	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)/OsvvmContext.vhd
+osvvm/OsvvmContext.o: $(OSVVM_SRC) | osvvm
+	@echo "Analyze OSVVM library ..."
+	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)
 
 
 tb_aes: ${RTL_SRC} ${SIM_SRC} ${C_SRC} osvvm/OsvvmContext.o | work
+	@echo "Analyze testbench & design ..."
 	ghdl -a --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm ${RTL_SRC} ${SIM_SRC}
-	ghdl -e --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm -Wl,-lcrypto -Wl,-lssl -Wl,tb_aes.c $@
+	@echo "Elaborate testbench & design ..."
+	ghdl -e --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm -Wl,-lcrypto -Wl,-lssl -Wl,$@.c $@
 
 
 tb_aes.ghw: tb_aes
-	ghdl -r tb_aes --wave=$@ --assert-level=error \
-	  --psl-report=$(basename $@)_psl_coverage_report.json
+	@echo "Run testbench ..."
+	ghdl -r $(basename $@) --wave=$@ --assert-level=error --psl-report=$(basename $@)_psl_report.json
 
 
 .PHONY: wave
 wave: tb_aes.ghw
+	@echo "Run GTKwave ..."
 	gtkwave -S tb_aes.tcl tb_aes.ghw
 
 
 .PHONY: clean
 clean:
-	echo "# cleaning simulation files"
-	rm -f tb_aes
-	rm -f tb_aes.ghw
-	rm -f *.o
-	rm -f *.json
-	rm -rf work/
-	rm -rf osvvm/
-
+	@echo "Cleaning simulation files ..."
+	rm -rf tb_aes tb_aes.ghw *.o *.json work/ osvvm/
