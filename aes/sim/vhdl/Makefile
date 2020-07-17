@@ -26,7 +26,7 @@ RTL_SRC := \
 
 SIM_SRC   := tb_aes.vhd
 C_SRC     := tb_aes.c
-OSVVM_SRC := ../../../lib/OSVVM
+OSVVM_SRC := ../../../lib/osvvm
 VHD_STD   := 08
 
 
