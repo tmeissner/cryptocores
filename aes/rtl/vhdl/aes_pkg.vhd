@@ -76,7 +76,7 @@ package aes_pkg is
   constant c_nr : natural := 10;  -- number of rounds
 
   subtype t_rounds is natural range 0 to c_nr + 1;
-  subtype t_key_rounds is natural range c_nk to c_nb * (c_nr + 1);
+  subtype t_key_rounds is natural range 0 to 9;
   subtype t_enc_rounds is natural range t_rounds'low to t_rounds'high+1;
   subtype t_dec_rounds is natural range t_rounds'low to t_rounds'high+1;
 
@@ -151,7 +151,7 @@ package aes_pkg is
 
   function rotword (input : in std_logic_vector(31 downto 0)) return std_logic_vector;
 
-  function key_round (key : t_key; round : t_enc_rounds) return t_key;
+  function key_round (key : t_key; round : t_key_rounds) return t_key;
 
   function set_state (input : in std_logic_vector(0 to 127)) return t_datatable2d;
 
@@ -337,7 +337,7 @@ package body aes_pkg is
   end function rotword;
 
 
-  function key_round (key : t_key; round : t_enc_rounds) return t_key is
+  function key_round (key : t_key; round : t_key_rounds) return t_key is
     variable v_key : t_key;
   begin
     v_key(3) := subword(rotword(key(3))) xor (c_rcon(round) & x"000000");

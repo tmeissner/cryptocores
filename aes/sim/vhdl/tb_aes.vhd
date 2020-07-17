@@ -77,6 +77,7 @@ architecture rtl of tb_aes is
     return v_data;
   end function;
 
+
 begin
 
 
@@ -145,7 +146,7 @@ begin
     for i in 0 to 63 loop
       wait until rising_edge(s_clk);
       s_validin_dec <= '1';
-      v_key         := x"2b7e151628aed2a6abf7158809cf4f3c";
+      v_key         := v_random.RandSlv(128);
       v_datain      := v_random.RandSlv(128);
       s_key         <= v_key;
       s_datain      <= v_datain;
