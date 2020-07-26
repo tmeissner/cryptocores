@@ -101,7 +101,7 @@ begin
   end process counterreg;
 
 
-  i_aes : aes_enc
+  i_aes_enc : entity work.aes_enc
     generic map (
       design_type => "ITER"
     )

@@ -1,6 +1,6 @@
 # ======================================================================
-# DES encryption/decryption
-# algorithm according to FIPS 46-3 specification
+# AES encryption/decryption
+# algorithm according to FIPS 197 specification
 # Copyright (C) 2020 Torsten Meissner
 #-----------------------------------------------------------------------
 # This program is free software; you can redistribute it and/or modify
@@ -19,8 +19,11 @@
 # ======================================================================
 
 
-DESIGN_NAME := des
-SRC_FILES   := ../../../des/rtl/vhdl/$(DESIGN_NAME)_pkg.vhd ../../../des/rtl/vhdl/$(DESIGN_NAME).vhd
+DESIGN_NAME := aes
+SRC_FILES   := ../../rtl/vhdl/aes_pkg.vhd \
+               ../../rtl/vhdl/aes_enc.vhd \
+               ../../rtl/vhdl/aes_dec.vhd \
+               ../../rtl/vhdl/aes.vhd
 VHD_STD     := 08
 
 

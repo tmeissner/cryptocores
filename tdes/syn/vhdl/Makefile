@@ -19,29 +19,30 @@
 # ======================================================================
 
 
-DES_SRC_FILES  := ../../../des/rtl/vhdl/des_pkg.vhd ../../../des/rtl/vhdl/des.vhd
-TDES_SRC_FILES := ../../rtl/vhdl/tdes.vhd
-SRC_FILES      := $(DES_SRC_FILES) $(TDES_SRC_FILES)
-VHD_STD        := 08
+DESIGN_NAME      := tdes
+DES_SRC_FILES    := ../../../des/rtl/vhdl/des_pkg.vhd ../../../des/rtl/vhdl/des.vhd
+DESIGN_SRC_FILES := ../../rtl/vhdl/$(DESIGN_NAME).vhd
+SRC_FILES        := $(DES_SRC_FILES) $(DESIGN_SRC_FILES)
+VHD_STD          := 08
 
 
 .PHONY: all
-all : tdes_synth.vhd syn
+all : $(DESIGN_NAME)_synth.vhd syn
 
 .PHONY: syn
-syn: tdes.json
+syn: $(DESIGN_NAME).json
 
 
-tdes.o: $(SRC_FILES)
+$(DESIGN_NAME).o: $(SRC_FILES)
 	ghdl -a --std=$(VHD_STD) $(SRC_FILES)
 
-tdes_synth.vhd: $(SRC_FILES)
-	ghdl --synth --std=$(VHD_STD) $(SRC_FILES) -e tdes > $@
+$(DESIGN_NAME)_synth.vhd: $(SRC_FILES)
+	ghdl --synth --std=$(VHD_STD) $(SRC_FILES) -e $(DESIGN_NAME) > $@
 
-tdes.json: tdes.o
-	yosys -m ghdl -p 'ghdl --std=08 --no-formal tdes; synth_ice40 -json $@'
+$(DESIGN_NAME).json: $(DESIGN_NAME).o
+	yosys -m ghdl -p 'ghdl --std=$(VHD_STD) --no-formal $(DESIGN_NAME); synth_ice40 -json $@'
 
 
 clean :
 	echo "# Cleaning files"
-	rm -f *.o work*.cf tdes.json tdes_synth.vhd
+	rm -f *.o work*.cf $(DESIGN_NAME).json $(DESIGN_NAME)_synth.vhd

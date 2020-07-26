@@ -29,6 +29,25 @@ library ieee;
 package des_pkg is
 
 
+  component des is
+    generic (
+      design_type : string := "ITER"
+    );
+    port (
+      reset_i     : in  std_logic;                  -- async reset
+      clk_i       : in  std_logic;                  -- clock
+      mode_i      : in  std_logic;                  -- des-modus: 0 = encrypt, 1 = decrypt
+      key_i       : in  std_logic_vector(0 to 63);  -- key input
+      data_i      : in  std_logic_vector(0 to 63);  -- data input
+      valid_i     : in  std_logic;                  -- input key/data valid
+      accept_o    : out std_logic;                  -- input accept
+      data_o      : out std_logic_vector(0 to 63);  -- data output
+      valid_o     : out std_logic;                  -- output data valid flag
+      accept_i    : in  std_logic                   -- output accept
+    );
+  end component des;
+
+
   type ip_matrix is array (0 to 63) of natural range 0 to 63;
   constant ip_table : ip_matrix := (57, 49, 41, 33, 25, 17,  9, 1,
                                 59, 51, 43, 35, 27, 19, 11, 3,

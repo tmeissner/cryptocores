@@ -1,7 +1,7 @@
 # ======================================================================
-# DES encryption/decryption
+# TDES encryption/decryption
 # algorithm according to FIPS 46-3 specification
-# Copyright (C) 2020 Torsten Meissner
+# Copyright (C) 2011 Torsten Meissner
 #-----------------------------------------------------------------------
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -19,28 +19,30 @@
 # ======================================================================
 
 
-DESIGN_NAME := des
-SRC_FILES   := ../../../des/rtl/vhdl/$(DESIGN_NAME)_pkg.vhd ../../../des/rtl/vhdl/$(DESIGN_NAME).vhd
-VHD_STD     := 08
+DES_SRC_FILES  := ../../../des/rtl/vhdl/des_pkg.vhd ../../../des/rtl/vhdl/des.vhd
+TDES_SRC_FILES := ../../rtl/vhdl/tdes.vhd
+SRC_FILES      := $(DES_SRC_FILES) $(TDES_SRC_FILES)
+VHD_STD        := 08
 
+
+.PHONY: sim
+sim : tb_tdes.ghw
 
 .PHONY: all
-all : $(DESIGN_NAME)_synth.vhd syn
-
-.PHONY: syn
-syn: $(DESIGN_NAME).json
+all : wave
 
 
-$(DESIGN_NAME).o: $(SRC_FILES)
-	ghdl -a --std=$(VHD_STD) $(SRC_FILES)
+tb_des.o: $(SRC_FILES) tb_tdes.vhd
+	ghdl -a --std=$(VHD_STD) $(SRC_FILES) tb_tdes.vhd
 
-$(DESIGN_NAME)_synth.vhd: $(SRC_FILES)
-	ghdl --synth --std=$(VHD_STD) $(SRC_FILES) -e $(DESIGN_NAME) > $@
+tb_tdes.ghw : tb_des.o
+	ghdl -e --std=$(VHD_STD) tb_tdes
+	ghdl -r tb_tdes --wave=tb_tdes.ghw --assert-level=error --stop-time=45us
 
-$(DESIGN_NAME).json: $(DESIGN_NAME).o
-	yosys -m ghdl -p 'ghdl --std=$(VHD_STD) --no-formal $(DESIGN_NAME); synth_ice40 -json $@'
+wave : tb_tdes.ghw
+	gtkwave -s tb_tdes.tcl tb_tdes.ghw
 
 
 clean :
 	echo "# Cleaning files"
-	rm -f *.o work*.cf $(DESIGN_NAME).json $(DESIGN_NAME)_synth.vhd
+	rm -f *.ghw *.o tb_tdes work*.cf

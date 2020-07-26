@@ -120,36 +120,48 @@ begin
     end process DeCryptP;
 
 
-    -- synthesis off
-    verification : block is
+    psl : block is
 
-      signal s_data : std_logic_vector(0 to 127);
+      signal s_key , s_din, s_dout : std_logic_vector(0 to 127) := (others => '0');
 
     begin
 
-      s_data <= data_o  when rising_edge(clk_i) else
-                128x"0" when reset_i = '0';
+      process (clk_i) is
+      begin
+        if (rising_edge(clk_i)) then
+          s_key  <= key_i;
+          s_din  <= data_i;
+          s_dout <= data_o;
+        end if;
+      end process;
 
-      default clock is rising_edge(Clk_i);
+      default clock is rising_edge(clk_i);
 
-      cover {accept_o};
-      assert always (accept_o -> s_round = 0);
+      -- initial reset
+      restrict {not reset_i; reset_i[+]}[*1];
 
-      cover {valid_i and accept_o};
-      assert always (valid_i and accept_o -> next not accept_o);
+      -- constraints
+      assume always (valid_i and not accept_o -> next valid_i);
+      assume always (valid_i and not accept_o -> next key_i = s_key);
+      assume always (valid_i and not accept_o -> next data_i = s_din);
 
-      cover {valid_o};
-      assert always (valid_o -> s_round = t_dec_rounds'high);
+      ACCEPTO_c : cover {accept_o};
+      ACCEPT_IN_ROUND_0_ONLY_a : assert always (accept_o -> s_round = 0);
 
-      cover {valid_o and accept_i};
-      assert always (valid_o and accept_i -> next not valid_o);
+      VALIDI_AND_ACCEPTO_c : cover {valid_i and accept_o};
+      ACCEPT_OFF_WHEN_VALID_a : assert always (valid_i and accept_o -> next not accept_o);
 
-      cover {valid_o and not accept_i};
-      assert always (valid_o and not accept_i -> next valid_o);
-      assert always (valid_o and not accept_i -> next data_o = s_data);
+      VALIDO_c : cover {valid_o};
+      VALID_IN_LAST_ROUND_ONLY_a : assert always (valid_o -> s_round = t_enc_rounds'high);
 
-    end block verification;
-    -- synthesis on
+      VALIDO_AND_ACCEPTI_c : cover {valid_o and accept_i};
+      VALID_OFF_WHEN_ACCEPTED_a : assert always (valid_o and accept_i -> next not valid_o);
+
+      VALIDO_AND_NOT_ACCEPTI_c : cover {valid_o and not accept_i};
+      VALID_STABLE_WHEN_NOT_ACCEPTED_a : assert always (valid_o and not accept_i -> next valid_o);
+      DATA_STABLE_WHEN_NOT_ACCEPTED_a : assert always (valid_o and not accept_i -> next data_o = s_dout);
+
+    end block psl;
 
 
   end generate IterG;

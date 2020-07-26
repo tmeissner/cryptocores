@@ -1,5 +1,5 @@
 # ======================================================================
-# DES encryption/decryption
+# CBCMAC-DES encryption/decryption
 # algorithm according to FIPS 46-3 specification
 # Copyright (C) 2020 Torsten Meissner
 #-----------------------------------------------------------------------
@@ -19,9 +19,11 @@
 # ======================================================================
 
 
-DESIGN_NAME := des
-SRC_FILES   := ../../../des/rtl/vhdl/$(DESIGN_NAME)_pkg.vhd ../../../des/rtl/vhdl/$(DESIGN_NAME).vhd
-VHD_STD     := 08
+DESIGN_NAME      := cbcmac_des
+DES_SRC_FILES    := ../../../des/rtl/vhdl/des_pkg.vhd ../../../des/rtl/vhdl/des.vhd
+DESIGN_SRC_FILES := ../../rtl/vhdl/$(DESIGN_NAME).vhd
+SRC_FILES        := $(DES_SRC_FILES) $(DESIGN_SRC_FILES)
+VHD_STD          := 08
 
 
 .PHONY: all

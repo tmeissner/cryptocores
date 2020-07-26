@@ -19,13 +19,10 @@
 -- ======================================================================
 
 
--- Revision 0.1   2011/10/08
--- Initial release
-
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 
 
 entity tb_tdes is
@@ -56,26 +53,11 @@ architecture rtl of tb_tdes is
   signal s_key3     : std_logic_vector(0 to 63) := (others => '0');
   signal s_datain   : std_logic_vector(0 to 63) := (others => '0');
   signal s_validin  : std_logic := '0';
-  signal s_ready    : std_logic := '0';
-  signal s_dataout  : std_logic_vector(0 to 63);
-  signal s_validout : std_logic := '0';
+  signal s_acceptin : std_logic;
 
-
-  component tdes is
-    port (
-      reset_i     : in  std_logic;
-      clk_i       : in  std_logic;
-      mode_i      : in  std_logic;
-      key1_i      : in  std_logic_vector(0 to 63);
-      key2_i      : in  std_logic_vector(0 TO 63);
-      key3_i      : in  std_logic_vector(0 TO 63);
-      data_i      : in  std_logic_vector(0 TO 63);
-      valid_i     : in  std_logic;
-      data_o      : out std_logic_vector(0 TO 63);
-      valid_o     : out std_logic;
-      ready_o     : out std_logic
-    );
-  end component tdes;
+  signal s_dataout   : std_logic_vector(0 to 63);
+  signal s_validout  : std_logic := '0';
+  signal s_acceptout : std_logic := '0';
 
 
 begin
@@ -87,23 +69,23 @@ begin
 
   teststimuliP : process is
   begin
-    s_mode    <= '0';
-    s_validin <= '0';
-    s_key1    <= (others => '0');
-    s_key2    <= (others => '0');
-    s_key3    <= (others => '0');
-    s_datain  <= (others => '0');
+    s_mode      <= '0';
+    s_validin   <= '0';
+    s_key1      <= (others => '0');
+    s_key2      <= (others => '0');
+    s_key3      <= (others => '0');
+    s_datain    <= (others => '0');
     wait until s_reset = '1';
     -- ENCRYPTION TESTS
     -- cbc known answers test
     for index in c_table_test_plain'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_key1    <= x"1111111111111111";
         s_key2    <= x"5555555555555555";
         s_key3    <= x"9999999999999999";
         s_validin <= '1';
         s_datain  <= c_table_test_plain(index);
-      wait until rising_edge(s_clk);
+      wait until s_acceptin = '1' and rising_edge(s_clk);
         s_validin <= '0';
     end loop;
     wait until rising_edge(s_clk);
@@ -117,30 +99,31 @@ begin
     -- DECRYPTION TESTS
     -- cbc known answer test
     for index in c_table_test_plain'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_key1    <= x"1111111111111111";
         s_key2    <= x"5555555555555555";
         s_key3    <= x"9999999999999999";
         s_mode    <= '1';
         s_validin <= '1';
         s_datain  <= s_tdes_answers(index);
-      wait until rising_edge(s_clk);
+      wait until s_acceptin = '1' and rising_edge(s_clk);
         s_validin <= '0';
         s_mode    <= '0';
     end loop;
     wait until rising_edge(s_clk);
-    s_mode    <= '0';
-    s_validin <= '0';
-    s_key1    <= (others => '0');
-    s_key2    <= (others => '0');
-    s_key3    <= (others => '0');
-    s_datain  <= (others => '0');
+    s_mode      <= '0';
+    s_validin   <= '0';
+    s_key1      <= (others => '0');
+    s_key2      <= (others => '0');
+    s_key3      <= (others => '0');
+    s_datain    <= (others => '0');
     wait;
   end process teststimuliP;
 
 
   testcheckerP : process is
   begin
+    s_acceptout <= '1';
     report "# ENCRYPTION TESTS";
     for index in c_table_test_plain'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
@@ -159,7 +142,7 @@ begin
   end process testcheckerP;
 
 
-  i_tdes : tdes
+  i_tdes : entity work.tdes
   port map (
     reset_i  => s_reset,
     clk_i    => s_clk,
@@ -169,9 +152,10 @@ begin
     key3_i   => s_key3,
     data_i   => s_datain,
     valid_i  => s_validin,
+    accept_o => s_acceptin,
     data_o   => s_dataout,
     valid_o  => s_validout,
-    ready_o  => s_ready
+    accept_i => s_acceptout
   );
 
 
