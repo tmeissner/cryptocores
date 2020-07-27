@@ -31,6 +31,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use std.env.all;
+
+
 
 entity tb_cbcdes is
 end entity tb_cbcdes;
@@ -148,26 +151,10 @@ architecture rtl of tb_cbcdes is
   signal s_iv       : std_logic_vector(0 to 63) := (others => '0');
   signal s_datain   : std_logic_vector(0 to 63) := (others => '0');
   signal s_validin  : std_logic := '0';
-  signal s_ready    : std_logic := '0';
+  signal s_acceptin : std_logic;
   signal s_dataout  : std_logic_vector(0 to 63);
   signal s_validout : std_logic;
-
-
-  component cbcdes is
-    port (
-      reset_i     : in  std_logic;
-      clk_i       : in  std_logic;
-      mode_i      : in  std_logic;
-      start_i     : in  std_logic;
-      iv_i        : in  std_logic_vector(0 to 63);
-      key_i       : in  std_logic_vector(0 TO 63);
-      data_i      : in  std_logic_vector(0 TO 63);
-      valid_i     : in  std_logic;
-      ready_o     : out std_logic;
-      data_o      : out std_logic_vector(0 TO 63);
-      valid_o     : out std_logic
-    );
-  end component cbcdes;
+  signal s_acceptout : std_logic := '0';
 
 
 begin
@@ -188,13 +175,13 @@ begin
     s_datain  <= x"8000000000000000";
     -- Variable plaintext known answer test
     for index in c_variable_plaintext_known_answers'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_validin <= '1';
         s_start   <= '1';
         if(index /= 0) then
           s_datain <= '0' & s_datain(0 to 62);
         end if;
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
     end loop;
@@ -209,11 +196,11 @@ begin
     -- Inverse permutation known answer test
     s_key     <= x"0101010101010101";
     for index in c_variable_plaintext_known_answers'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_validin <= '1';
         s_start   <= '1';
         s_datain  <= c_variable_plaintext_known_answers(index);
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
     end loop;
@@ -228,7 +215,7 @@ begin
     -- Variable key known answer test
     s_key     <= x"8000000000000000";
     for index in c_variable_key_known_answers'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_validin <= '1';
         s_start   <= '1';
         if(index /= 0) then
@@ -239,7 +226,7 @@ begin
             s_key <= '0' & s_key(0 to 62);
           end if;
         end if;
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
     end loop;
@@ -254,11 +241,11 @@ begin
     -- Permutation operation known answer test
     s_datain <= x"0000000000000000";
     for index in c_permutation_operation_known_answers_keys'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_validin <= '1';
         s_start   <= '1';
         s_key     <= c_permutation_operation_known_answers_keys(index);
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
     end loop;
@@ -272,12 +259,12 @@ begin
     wait for 1 us;
     -- Substitution table known answer test
     for index in c_substitution_table_test_keys'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_validin <= '1';
         s_start   <= '1';
         s_key     <= c_substitution_table_test_keys(index);
         s_datain  <= c_substitution_table_test_plain(index);
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
     end loop;
@@ -291,7 +278,7 @@ begin
     wait for 1 us;
     -- cbc known answers test
     for index in c_substitution_table_test_keys'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         if(index = 0) then
           s_start <= '1';
           s_key   <= x"5555555555555555";
@@ -299,7 +286,7 @@ begin
         end if;
         s_validin <= '1';
         s_datain  <= c_substitution_table_test_plain(index);
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
     end loop;
@@ -315,12 +302,12 @@ begin
     -- Variable ciphertext known answer test
     s_key     <= x"0101010101010101";
     for index in c_variable_plaintext_known_answers'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_mode    <= '1';
         s_start   <= '1';
         s_validin <= '1';
         s_datain  <= c_variable_plaintext_known_answers(index);
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
         s_mode    <= '0';
@@ -337,14 +324,14 @@ begin
     s_key     <= x"0101010101010101";
     s_datain  <= x"8000000000000000";
     for index in c_variable_plaintext_known_answers'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_mode    <= '1';
         s_start   <= '1';
         s_validin <= '1';
         if(index /= 0) then
           s_datain <= '0' & s_datain(0 to 62);
         end if;
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
         s_mode    <= '0';
@@ -360,7 +347,7 @@ begin
     -- Variable key known answer test
     s_key     <= x"8000000000000000";
     for index in c_variable_key_known_answers'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_mode    <= '1';
         s_start   <= '1';
         s_validin <= '1';
@@ -373,7 +360,7 @@ begin
             s_key <= '0' & s_key(0 to 62);
           end if;
         end if;
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
         s_mode    <= '0';
@@ -388,13 +375,13 @@ begin
     wait for 1 us;
     -- Permutation operation known answer test
     for index in c_permutation_operation_known_answers_keys'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_mode    <= '1';
         s_start   <= '1';
         s_validin <= '1';
         s_datain  <= c_permutation_operation_known_answers_cipher(index);
         s_key     <= c_permutation_operation_known_answers_keys(index);
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
         s_mode    <= '0';
@@ -409,13 +396,13 @@ begin
     wait for 1 us;
     -- Substitution table known answer test
     for index in c_substitution_table_test_keys'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         s_mode    <= '1';
         s_start   <= '1';
         s_validin <= '1';
         s_key     <= c_substitution_table_test_keys(index);
         s_datain  <= c_substitution_table_test_cipher(index);
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
         s_mode    <= '0';
@@ -430,7 +417,7 @@ begin
     wait for 1 us;
     -- cbc known answer test
     for index in c_substitution_table_test_keys'range loop
-      wait until rising_edge(s_clk) and s_ready = '1';
+      wait until rising_edge(s_clk);
         if(index = 0) then
           s_mode  <= '1';
           s_start <= '1';
@@ -439,7 +426,7 @@ begin
         end if;
         s_validin <= '1';
         s_datain  <= s_cbc_answers(index);
-      wait until rising_edge(s_clk);
+      wait until rising_edge(s_clk) and s_acceptin = '1';
         s_validin <= '0';
         s_start   <= '0';
         s_mode    <= '0';
@@ -458,6 +445,7 @@ begin
   testcheckerP : process is
     variable v_plaintext : std_logic_vector(0 to 63) := x"8000000000000000";
   begin
+    s_acceptout <= '1';
     report "# ENCRYPTION TESTS";
     report "# Variable plaintext known answer test";
     for index in c_variable_plaintext_known_answers'range loop
@@ -545,11 +533,12 @@ begin
           severity error;
     end loop;
     report "# Successfully passed all tests";
-    wait;
+    wait for 10 us;
+    stop(0);
   end process testcheckerP;
 
 
-  i_cbcdes : cbcdes
+  i_cbcdes : entity work.cbcdes
   port map (
     reset_i  => s_reset,
     clk_i    => s_clk,
@@ -559,9 +548,10 @@ begin
     iv_i     => s_iv,
     data_i   => s_datain,
     valid_i  => s_validin, 
-    ready_o  => s_ready,              
+    accept_o => s_acceptin,              
     data_o   => s_dataout,
-    valid_o  => s_validout
+    valid_o  => s_validout,
+    accept_i => s_acceptout
   );
 
 
