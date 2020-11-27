@@ -20,9 +20,10 @@
 
 RTL_SRC := \
   ../../rtl/vhdl/aes_pkg.vhd \
-  ../../rtl/vhdl/aes.vhd     \
   ../../rtl/vhdl/aes_enc.vhd \
-  ../../rtl/vhdl/aes_dec.vhd
+  ../../rtl/vhdl/aes_dec.vhd \
+  ../../rtl/vhdl/aes.vhd
+
 
 SIM_SRC   := tb_aes.vhd
 C_SRC     := tb_aes.c
