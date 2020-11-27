@@ -20,9 +20,10 @@
 
 RTL_SRC := \
   ../../rtl/vhdl/aes_pkg.vhd \
-  ../../rtl/vhdl/aes.vhd     \
   ../../rtl/vhdl/aes_enc.vhd \
-  ../../rtl/vhdl/aes_dec.vhd
+  ../../rtl/vhdl/aes_dec.vhd \
+  ../../rtl/vhdl/aes.vhd
+
 
 SIM_SRC   := tb_aes.vhd
 C_SRC     := tb_aes.c
@@ -72,7 +73,7 @@ tb_aes: ${RTL_SRC} ${SIM_SRC} ${C_SRC} osvvm/OsvvmContext.o | work
 	@echo "Analyze testbench & design ..."
 	ghdl -a --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm ${RTL_SRC} ${SIM_SRC}
 	@echo "Elaborate testbench & design ..."
-	ghdl -e --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm -Wl,-lcrypto -Wl,-lssl -Wl,$@.c $@
+	ghdl -e --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm -Wl,$@.c -Wl,-lcrypto -Wl,-lssl $@
 
 
 tb_aes.ghw: tb_aes
