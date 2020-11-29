@@ -1,7 +1,9 @@
-# cryptocores
-cryptography ip-cores in vhdl / verilog
+[![simulation](https://github.com/tmeissner/cryptocores/workflows/test/badge.svg?branch=master)](https://github.com/tmeissner/cryptocores/actions?query=workflow%3Atest)
 
-The components in this repository are not intended for productional code.
+# cryptocores
+Cryptography IP-cores & tests written in VHDL / Verilog
+
+The components in this repository are not intended as productional code.
 They serve as proof of concept, for example how to implement a pipeline using
 only (local) variables instead of (global) signals. Furthermore they were used
 how to do a VHDL-to-Verilog conversion for learning purposes.
