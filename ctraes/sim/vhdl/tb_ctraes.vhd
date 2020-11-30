@@ -52,6 +52,29 @@ architecture sim of tb_ctraes is
   signal s_validout  : std_logic := '0';
   signal s_acceptout : std_logic := '0';
 
+  procedure cryptData(datain  : in  std_logic_vector(0 to 127);
+                      key     : in  std_logic_vector(0 to 127);
+                      iv      : in  std_logic_vector(0 to 127);
+                      start   : in  boolean;
+                      final   : in  boolean;
+                      dataout : out std_logic_vector(0 to 127);
+                      bytelen : in  integer) is
+  begin
+    report "VHPIDIRECT cryptData" severity failure;
+  end procedure;
+
+  attribute foreign of cryptData: procedure is "VHPIDIRECT cryptData";
+
+  function swap (datain : std_logic_vector(0 to 127)) return std_logic_vector is
+    variable v_data : std_logic_vector(0 to 127);
+  begin
+    for i in 0 to 15 loop
+      for y in 0 to 7 loop
+        v_data((i*8)+y) := datain((i*8)+7-y);
+      end loop;
+    end loop;
+    return v_data;
+  end function;
 
 begin
 
@@ -80,43 +103,43 @@ begin
 
 
   process is
+    variable v_start   : std_logic;
+    variable v_key     : std_logic_vector(0 to 127);
+    variable v_nonce   : std_logic_vector(0 to C_NONCE_WIDTH-1);
+    variable v_datain  : std_logic_vector(0 to 127);
+    variable v_dataout : std_logic_vector(0 to 127);
     variable v_random  : RandomPType;
   begin
     v_random.InitSeed(v_random'instance_name);
     wait until s_reset = '1' and rising_edge(s_clk);
     -- ENCRYPTION TESTs
-    report "Test encryption";
+    report "Test CTR-AES encryption";
     for i in 0 to 31 loop
       if (i = 0) then
-        s_start <= '1';
-        s_nonce <= v_random.RandSlv(s_nonce'length);
+        v_start := '1';
+        v_nonce := v_random.RandSlv(s_nonce'length);
       else
-        s_start <= '0';
+        v_start := '0';
       end if;
+      v_key     := v_random.RandSlv(128);
+      v_datain  := v_random.RandSlv(128);
+      s_key     <= v_key;
       s_validin <= '1';
-      s_key     <= v_random.RandSlv(128);
-      s_datain  <= v_random.RandSlv(128);
-      report "Test #" & to_string(i);
+      s_start   <= v_start;
+      s_nonce   <= v_nonce;
+      s_datain  <= v_datain;
+      cryptData(swap(v_datain), swap(v_key), swap(v_nonce & 32x"0"), i = 0, i = 31, v_dataout, v_datain'length/8);
       wait until s_acceptin = '1' and rising_edge(s_clk);
       s_validin <= '0';
-    end loop;
-    -- Watchdog
-    wait for 1 us;
-    report "Watchdog error"
-      severity failure;
-  end process;
-
-
-  process is
-  begin
-    s_acceptout <= '0';
-    for i in 0 to 31 loop
-    wait until s_validout = '1' and rising_edge(s_clk);
+      wait until s_validout = '1' and rising_edge(s_clk);
       s_acceptout <= '1';
+      assert s_dataout = swap(v_dataout)
+        report "Encryption error: Expected 0x" & to_hstring(swap(v_dataout)) & ", got 0x" & to_hstring(s_dataout)
+        severity failure;
       wait until rising_edge(s_clk);
       s_acceptout <= '0';
     end loop;
-    report "Tests finished";
+    -- Watchdog
     wait for 100 ns;
     finish(0);
   end process;

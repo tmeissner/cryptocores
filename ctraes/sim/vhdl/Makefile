@@ -29,6 +29,7 @@ RTL_SRC := \
 
 
 SIM_SRC   := tb_$(DESIGN_NAME).vhd
+C_SRC     := tb_ctraes.c
 
 
 OSVVM_DIR := ../../../lib/osvvm
@@ -72,11 +73,11 @@ osvvm/OsvvmContext.o: $(OSVVM_SRC) | osvvm
 	ghdl -a --std=$(VHD_STD) -Wno-hide --work=osvvm --workdir=osvvm $(OSVVM_SRC)
 
 
-tb_$(DESIGN_NAME): ${RTL_SRC} ${SIM_SRC} osvvm/OsvvmContext.o | work
+tb_$(DESIGN_NAME): ${RTL_SRC} ${SIM_SRC} ${C_SRC} osvvm/OsvvmContext.o | work
 	@echo "Analyze testbench & design ..."
 	ghdl -a --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm ${RTL_SRC} ${SIM_SRC}
 	@echo "Elaborate testbench & design ..."
-	ghdl -e --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm $@
+	ghdl -e --std=$(VHD_STD) -fpsl --workdir=work -P=osvvm -Wl,$@.c -Wl,-lcrypto -Wl,-lssl $@
 
 
 tb_$(DESIGN_NAME).ghw: tb_$(DESIGN_NAME)
