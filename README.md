@@ -1,4 +1,7 @@
-[![simulation](https://github.com/tmeissner/cryptocores/workflows/test/badge.svg?branch=master)](https://github.com/tmeissner/cryptocores/actions?query=workflow%3Atest)
+<p align="center">
+  <a title="GitHub Actions workflow 'simulation'" href="https://github.com/tmeissner/cryptocores/actions?query=workflow%3ASimulation"><img alt="'simulation' workflow Status" src="https://img.shields.io/github/workflow/status/tmeissner/cryptocores/Simulation/master?longCache=true&style=flat-square&label=build&logo=Github%20Actions&logoColor=fff"></a><!--
+  -->
+</p>
 
 # cryptocores
 Cryptography IP-cores & tests written in VHDL / Verilog
