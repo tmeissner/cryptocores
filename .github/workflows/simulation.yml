@@ -28,7 +28,7 @@ jobs:
         backend: llvm
 
     - name: '▶️ Test'
-      run: ./.github/test.sh
+      run: ./.github/test.sh sim
       env:
         MAKE: make
 
@@ -61,6 +61,6 @@ jobs:
           mingw-w64-x86_64-openssl
 
     - name: '▶️ Test'
-      run: ./.github/test.sh
+      run: ./.github/test.sh sim
       env:
         MAKE: mingw32-make
