@@ -12,6 +12,6 @@ run_sim() {
   echo '::endgroup::'
 }
 
-for item in aes cbcdes cbcmac_des cbctdes des tdes; do
+for item in aes cbcdes cbcmac_des cbctdes ctraes des tdes; do
   run_sim $item
 done

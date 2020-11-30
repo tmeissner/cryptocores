@@ -93,8 +93,9 @@ begin
       s_counter <= (others => '0');
     elsif (rising_edge(clk_i)) then
       if (valid_i = '1' and accept_o = '1' and start_i = '1') then
-        s_counter <= (others => '0');
-      elsif (valid_o = '1' and accept_i = '1') then
+        s_counter   <= (others => '0');
+        s_counter(s_counter'high) <= '1';
+      elsif (valid_i = '1' and accept_o = '1') then
         s_counter <= s_counter + 1;
       end if;
     end if;
