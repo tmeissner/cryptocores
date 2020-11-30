@@ -9,34 +9,49 @@ jobs:
 
   lin:
     runs-on: ubuntu-latest
+    name: '🐧 Ubuntu 20.04'
     steps:
 
-    - uses: actions/checkout@v2
+    - name: '🧰 Checkout'
+      uses: actions/checkout@v2
       with:
         submodules: recursive
 
-    - name: Install dependencies
+    - name: '⚙️ Install dependencies'
       run: |
         sudo apt update -qq
         sudo apt install -y libssl-dev
 
-    - uses: ghdl/setup-ghdl-ci@master
+    - name: '🔧 Setup GHDL'
+      uses: ghdl/setup-ghdl-ci@master
       with:
         backend: llvm
 
-    - run: ./.github/test.sh
+    - name: '▶️ Test'
+      run: ./.github/test.sh
       env:
         MAKE: make
 
 
   win:
     runs-on: windows-latest
+    name: '🟪 MSYS2 MINGW64'
     defaults:
       run:
         shell: msys2 {0}
     steps:
 
-    - uses: msys2/setup-msys2@v2
+    - name: '⚙️ git config autocrlf'
+      run: git config --global core.autocrlf input
+      shell: bash
+
+    - name: '🧰 Checkout'
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: '🟪 Setup MSYS2'
+      uses: msys2/setup-msys2@v2
       with:
         msystem: MINGW64
         update: true
@@ -45,13 +60,7 @@ jobs:
           mingw-w64-x86_64-ghdl-llvm
           mingw-w64-x86_64-openssl
 
-    - run: git config --global core.autocrlf input
-      shell: bash
-
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-
-    - run: ./.github/test.sh
+    - name: '▶️ Test'
+      run: ./.github/test.sh
       env:
         MAKE: mingw32-make
