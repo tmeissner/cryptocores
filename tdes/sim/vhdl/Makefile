@@ -19,30 +19,31 @@
 # ======================================================================
 
 
-DES_SRC_FILES  := ../../../des/rtl/vhdl/des_pkg.vhd ../../../des/rtl/vhdl/des.vhd
-TDES_SRC_FILES := ../../rtl/vhdl/tdes.vhd
-SRC_FILES      := $(DES_SRC_FILES) $(TDES_SRC_FILES)
+DESIGN_NAME := tdes
+SRC_FILES   := ../../../des/rtl/vhdl/des_pkg.vhd \
+               ../../../des/rtl/vhdl/des.vhd \
+               ../../rtl/vhdl/$(DESIGN_NAME).vhd
 VHD_STD        := 08
 
 
 .PHONY: sim
-sim : tb_tdes.ghw
+sim : tb_$(DESIGN_NAME).ghw
 
 .PHONY: all
 all : wave
 
 
-tb_des.o: $(SRC_FILES) tb_tdes.vhd
-	ghdl -a --std=$(VHD_STD) $(SRC_FILES) tb_tdes.vhd
+tb_$(DESIGN_NAME).o: $(SRC_FILES) tb_$(DESIGN_NAME).vhd
+	ghdl -a --std=$(VHD_STD) $(SRC_FILES) $(basename $@).vhd
 
-tb_tdes.ghw : tb_des.o
-	ghdl -e --std=$(VHD_STD) tb_tdes
-	ghdl -r tb_tdes --wave=tb_tdes.ghw --assert-level=error --stop-time=45us
+tb_$(DESIGN_NAME).ghw : tb_$(DESIGN_NAME).o
+	ghdl -e --std=$(VHD_STD) $(basename $@)
+	ghdl -r $(basename $@) --wave=$@ --assert-level=error
 
-wave : tb_tdes.ghw
-	gtkwave -s tb_tdes.tcl tb_tdes.ghw
+wave : tb_$(DESIGN_NAME).ghw
+	gtkwave -s tb_$(DESIGN_NAME).tcl tb_$(DESIGN_NAME).ghw
 
 
 clean :
 	echo "# Cleaning files"
-	rm -f *.ghw *.o tb_tdes work*.cf
+	rm -f *.ghw *.o tb_$(DESIGN_NAME) work*.cf

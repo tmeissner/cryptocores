@@ -23,10 +23,13 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+use std.env.all;
+
 
 
 entity tb_tdes is
 end entity tb_tdes;
+
 
 
 architecture rtl of tb_tdes is
@@ -124,21 +127,24 @@ begin
   testcheckerP : process is
   begin
     s_acceptout <= '1';
-    report "# ENCRYPTION TESTS";
+    report "# ENCRYPTION";
     for index in c_table_test_plain'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
         s_tdes_answers(index) <= s_dataout;
+        report "TDES enc: 0x" & to_hstring(c_table_test_plain(index)) & " -> " & to_hstring(s_dataout);
     end loop;
     report "# DECRYPTION TESTS";
     report "# tdes known answer test";
     for index in c_table_test_plain'range loop
       wait until rising_edge(s_clk) and s_validout = '1';
+        report "TDES dec: 0x" & to_hstring(s_tdes_answers(index)) & " -> " & to_hstring(s_dataout);
         assert (s_dataout = c_table_test_plain(index))
           report "decryption error"
           severity error;
     end loop;
     report "# Successfully passed all tests";
-    wait;
+    wait for 10 us;
+    stop(0);
   end process testcheckerP;
 
 
