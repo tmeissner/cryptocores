@@ -103,7 +103,6 @@ begin
 
 
   process is
-    variable v_start   : std_logic;
     variable v_key     : std_logic_vector(0 to 127);
     variable v_nonce   : std_logic_vector(0 to C_NONCE_WIDTH-1);
     variable v_datain  : std_logic_vector(0 to 127);
@@ -114,23 +113,19 @@ begin
     wait until s_reset = '1' and rising_edge(s_clk);
     -- ENCRYPTION TESTs
     report "Test CTR-AES encryption";
+    s_start <= '1';
+    v_nonce := v_random.RandSlv(s_nonce'length);
+    v_key   := v_random.RandSlv(128);
     for i in 0 to 31 loop
-      if (i = 0) then
-        v_start := '1';
-        v_nonce := v_random.RandSlv(s_nonce'length);
-      else
-        v_start := '0';
-      end if;
-      v_key     := v_random.RandSlv(128);
       v_datain  := v_random.RandSlv(128);
-      s_key     <= v_key;
       s_validin <= '1';
-      s_start   <= v_start;
+      s_key     <= v_key;
       s_nonce   <= v_nonce;
       s_datain  <= v_datain;
       cryptData(swap(v_datain), swap(v_key), swap(v_nonce & 32x"0"), i = 0, i = 31, v_dataout, v_datain'length/8);
       wait until s_acceptin = '1' and rising_edge(s_clk);
       s_validin <= '0';
+      s_start   <= '0';
       wait until s_validout = '1' and rising_edge(s_clk);
       s_acceptout <= '1';
       assert s_dataout = swap(v_dataout)
@@ -141,6 +136,7 @@ begin
     end loop;
     -- Watchdog
     wait for 100 ns;
+    report "Simulation finished without errors";
     finish(0);
   end process;
 
