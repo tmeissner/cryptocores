@@ -8,7 +8,7 @@ They serve as proof of concept, for example how to implement a pipeline using
 only (local) variables instead of (global) signals. Furthermore they were used
 how to do a VHDL-to-Verilog conversion for learning purposes.
 
-The testbenches to verify [AES](aes/sim/vhdl/) and [CTR-AES](ctraes/sim/vhdl/) are examples
+The testbenches to verify [DES](des/sim/vhdl/), [AES](aes/sim/vhdl/) and [CTR-AES](ctraes/sim/vhdl/) are examples
 how useful GHDLs VHPIdirect is. They use openSSL as reference models to check the correctness
 of the VHDL implementation.
 
@@ -16,4 +16,4 @@ of the VHDL implementation.
 
 The tests of some algorithms use the OSVVM library, which is redistributed as
 submodule. To get & initialize the submodule, please use the `--recursive` option
-when cloning this repository.
+when cloning this repository. Use `git submodule update --recursive` to update the submodule if you already chaked out the main repository.
