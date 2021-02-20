@@ -22,6 +22,6 @@ run_task() {
   echo '::endgroup::'
 }
 
-for item in aes cbcdes cbcmac_des cbctdes ctraes des tdes; do
+for item in aes cbcaes cbcdes cbcmac_des cbctdes ctraes des tdes; do
   run_task "$item" "$1"
 done

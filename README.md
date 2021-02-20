@@ -8,9 +8,7 @@ They serve as proof of concept, for example how to implement a pipeline using
 only (local) variables instead of (global) signals. Furthermore they were used
 how to do a VHDL-to-Verilog conversion for learning purposes.
 
-The testbenches to verify [DES](des/sim/vhdl/), [AES](aes/sim/vhdl/) and [CTR-AES](ctraes/sim/vhdl/) are examples
-how useful GHDLs VHPIdirect is. They use openSSL as reference models to check the correctness
-of the VHDL implementation.
+The testbenches to verify [DES](des/sim/vhdl/), [AES](aes/sim/vhdl/), [CTR-AES](ctraes/sim/vhdl/) and [CBC-AES](cbcaes/sim/vhdl/) are examples how useful GHDLs VHPIdirect is. They use openSSL as reference models to check the correctness of the VHDL implementation.
 
 *HINT:*
 
